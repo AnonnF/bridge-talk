@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { getScenarios } from '../services/questionBankApi'
 import type { ScenarioSummary } from '../types/questionBank'
 
@@ -30,6 +31,26 @@ function formatQuestionCount(count: number): string {
 <template>
   <div class="practice-page">
     <main class="practice-main">
+      <nav class="practice-nav" aria-label="Practice">
+        <RouterLink to="/" class="practice-nav__back">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M15 18l-6-6 6-6"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Home
+        </RouterLink>
+      </nav>
+
       <section class="question-bank" aria-labelledby="question-bank-title">
         <div class="question-bank__header">
           <h1 id="question-bank-title">Practice Question Bank</h1>
@@ -241,6 +262,36 @@ function formatQuestionCount(count: number): string {
 .practice-main {
   min-height: 100svh;
   padding: clamp(1rem, 4vw, 1.5rem) var(--space-page-x) 1rem;
+}
+
+.practice-nav {
+  width: 100%;
+  max-width: var(--max-content);
+  margin: 0 auto 1rem;
+}
+
+.practice-nav__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.5;
+  color: var(--color-text-strong);
+  text-decoration: none;
+}
+
+.practice-nav__back svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.practice-nav__back:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: 4px;
 }
 
 .question-bank {
