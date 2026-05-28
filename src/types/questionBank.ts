@@ -24,6 +24,10 @@ export type SubmitAnswer = {
   selectedOptionId: string
 }
 
+export type CheckAnswerRequest = {
+  selectedOptionId: string
+}
+
 export type QuestionResult = {
   questionId: string
   correct: boolean

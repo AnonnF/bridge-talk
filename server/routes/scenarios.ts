@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { loadQuestionBank } from '../data/loadQuestionBank.js'
 import type {
+  CheckAnswerRequestBody,
   QuestionResult,
   QuizQuestion,
   ScenarioSummary,
@@ -59,6 +60,45 @@ function parseSubmitBody(body: unknown): SubmitAnswer[] | null {
   return answers
 }
 
+function parseCheckAnswerBody(body: unknown): string | null {
+  if (typeof body !== 'object' || body === null) {
+    return null
+  }
+  const selectedOptionId = (body as CheckAnswerRequestBody).selectedOptionId
+  if (typeof selectedOptionId !== 'string' || selectedOptionId.trim() === '') {
+    return null
+  }
+  return selectedOptionId
+}
+
+function gradeQuestion(
+  scenario: Scenario,
+  questionId: string,
+  selectedOptionId: string,
+): QuestionResult | null {
+  const question = scenario.questions.find(
+    (candidate) => candidate.id === questionId,
+  )
+  if (!question) {
+    return null
+  }
+
+  const selectedOptionExists = question.options.some(
+    (option) => option.id === selectedOptionId,
+  )
+  if (!selectedOptionExists) {
+    throw new Error('UNKNOWN_OPTION_ID')
+  }
+
+  return {
+    questionId: question.id,
+    correct: selectedOptionId === question.correctOptionId,
+    selectedOptionId,
+    correctOptionId: question.correctOptionId,
+    explanation: question.explanation,
+  }
+}
+
 function gradeSubmission(
   scenario: Scenario,
   answers: SubmitAnswer[],
@@ -80,14 +120,11 @@ function gradeSubmission(
 
   return scenario.questions.map((question) => {
     const selectedOptionId = answersByQuestionId.get(question.id) ?? ''
-    const correct = selectedOptionId === question.correctOptionId
-    return {
-      questionId: question.id,
-      correct,
-      selectedOptionId,
-      correctOptionId: question.correctOptionId,
-      explanation: question.explanation,
+    const result = gradeQuestion(scenario, question.id, selectedOptionId)
+    if (!result) {
+      throw new Error('UNKNOWN_QUESTION_ID')
     }
+    return result
   })
 }
 
@@ -107,6 +144,45 @@ export function createScenariosRouter() {
     }
     res.json({ questions: toQuizQuestions(scenario) })
   })
+
+  router.post(
+    '/scenarios/:scenarioId/questions/:questionId/check',
+    (req, res) => {
+      const scenario = findScenario(req.params.scenarioId)
+      if (!scenario) {
+        res.status(404).json({ error: 'Scenario not found' })
+        return
+      }
+
+      const selectedOptionId = parseCheckAnswerBody(req.body)
+      if (!selectedOptionId) {
+        res.status(400).json({ error: 'Invalid check body' })
+        return
+      }
+
+      let result: QuestionResult | null
+      try {
+        result = gradeQuestion(
+          scenario,
+          req.params.questionId,
+          selectedOptionId,
+        )
+      } catch (error) {
+        if (error instanceof Error && error.message === 'UNKNOWN_OPTION_ID') {
+          res.status(400).json({ error: 'Invalid selected option' })
+          return
+        }
+        throw error
+      }
+
+      if (!result) {
+        res.status(404).json({ error: 'Question not found' })
+        return
+      }
+
+      res.json(result)
+    },
+  )
 
   router.post('/scenarios/:scenarioId/submit', (req, res) => {
     const scenario = findScenario(req.params.scenarioId)
