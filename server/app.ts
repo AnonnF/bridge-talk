@@ -1,5 +1,6 @@
 import cors from 'cors'
 import express from 'express'
+import { createScenariosRouter } from './routes/scenarios.js'
 
 export function createApp() {
   const app = express()
@@ -14,6 +15,8 @@ export function createApp() {
   app.get('/api/health', (_req, res) => {
     res.json({ ok: true })
   })
+
+  app.use('/api', createScenariosRouter())
 
   return app
 }
