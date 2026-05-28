@@ -272,7 +272,10 @@ async function handleCheckAnswer() {
         </p>
 
         <div class="quiz-results__report">
-          <p>Summary report here.</p>
+          <p>
+            Summary Report here, for now use this placeholder. Correct answers:
+            {{ results.score }}. Wrong answers: {{ incorrectAnswerCount }}.
+          </p>
         </div>
 
         <BaseButton to="/practice" size="sm">Back to practice</BaseButton>
