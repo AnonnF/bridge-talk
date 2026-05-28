@@ -1,4 +1,4 @@
-import type { QuestionOption, ScenarioLevel } from './questionBank.js'
+import type { ScenarioLevel } from './questionBank.js'
 
 export type ScenarioSummary = {
   id: string
@@ -11,12 +11,12 @@ export type ScenarioSummary = {
 export type QuizQuestion = {
   id: string
   prompt: string
-  options: QuestionOption[]
+  options: string[]
 }
 
 export type SubmitAnswer = {
   questionId: string
-  selectedOptionId: string
+  selectedOptionText: string
 }
 
 export type SubmitRequestBody = {
@@ -24,14 +24,14 @@ export type SubmitRequestBody = {
 }
 
 export type CheckAnswerRequestBody = {
-  selectedOptionId: string
+  selectedOptionText: string
 }
 
 export type QuestionResult = {
   questionId: string
   correct: boolean
-  selectedOptionId: string
-  correctOptionId: string
+  selectedOptionText: string
+  correctOptionText: string
   explanation: string
 }
 

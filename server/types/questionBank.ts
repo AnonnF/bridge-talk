@@ -1,15 +1,9 @@
 export type ScenarioLevel = 'beginner' | 'intermediate' | 'advanced'
 
-export type QuestionOption = {
-  id: string
-  text: string
-}
-
 export type Question = {
   id: string
   prompt: string
-  options: QuestionOption[]
-  correctOptionId: string
+  options: string[]
   explanation: string
 }
 

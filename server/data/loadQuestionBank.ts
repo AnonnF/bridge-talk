@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url'
 import type {
   Question,
   QuestionBank,
-  QuestionOption,
   Scenario,
   ScenarioLevel,
 } from '../types/questionBank.js'
@@ -33,52 +32,37 @@ function requireString(
   return value
 }
 
-function parseOption(raw: unknown, context: string): QuestionOption {
-  if (!isRecord(raw)) {
-    throw new Error(`${context}: option must be an object`)
-  }
-  return {
-    id: requireString(raw, 'id', context),
-    text: requireString(raw, 'text', context),
-  }
-}
-
 function parseQuestion(raw: unknown, context: string): Question {
   if (!isRecord(raw)) {
     throw new Error(`${context}: question must be an object`)
   }
 
   const optionsRaw = raw.options
-  if (!Array.isArray(optionsRaw) || optionsRaw.length < 2) {
-    throw new Error(
-      `${context}: "options" must be an array with at least 2 items`,
-    )
+  if (!Array.isArray(optionsRaw) || optionsRaw.length !== 4) {
+    throw new Error(`${context}: "options" must be an array of 4 strings`)
   }
 
-  const options = optionsRaw.map((option, index) =>
-    parseOption(option, `${context}.options[${index}]`),
-  )
-
-  const optionIds = new Set<string>()
-  for (const option of options) {
-    if (optionIds.has(option.id)) {
-      throw new Error(`${context}: duplicate option id "${option.id}"`)
+  const options = optionsRaw.map((option, index) => {
+    if (typeof option !== 'string' || option.trim() === '') {
+      throw new Error(
+        `${context}.options[${index}]: option must be a non-empty string`,
+      )
     }
-    optionIds.add(option.id)
-  }
+    return option
+  })
 
-  const correctOptionId = requireString(raw, 'correctOptionId', context)
-  if (!optionIds.has(correctOptionId)) {
-    throw new Error(
-      `${context}: "correctOptionId" must match one of the option ids`,
-    )
+  const optionTexts = new Set<string>()
+  for (const option of options) {
+    if (optionTexts.has(option)) {
+      throw new Error(`${context}: duplicate option text "${option}"`)
+    }
+    optionTexts.add(option)
   }
 
   return {
     id: requireString(raw, 'id', context),
     prompt: requireString(raw, 'prompt', context),
     options,
-    correctOptionId,
     explanation: requireString(raw, 'explanation', context),
   }
 }

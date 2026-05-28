@@ -23,7 +23,7 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 
 const currentIndex = ref(0)
-const selectedByQuestionId = ref<Record<string, string>>({})
+const selectedTextByQuestionId = ref<Record<string, string>>({})
 const feedbackByQuestionId = ref<Record<string, QuestionResult>>({})
 const submitting = ref(false)
 const results = ref<SubmitResponse | null>(null)
@@ -37,7 +37,7 @@ const currentSelection = computed(() => {
   if (!question) {
     return ''
   }
-  return selectedByQuestionId.value[question.id] ?? ''
+  return selectedTextByQuestionId.value[question.id] ?? ''
 })
 
 const currentFeedback = computed(() => {
@@ -49,15 +49,8 @@ const currentFeedback = computed(() => {
 })
 
 const currentCorrectAnswerText = computed(() => {
-  const question = currentQuestion.value
   const feedback = currentFeedback.value
-  if (!question || !feedback) {
-    return ''
-  }
-  return (
-    question.options.find((option) => option.id === feedback.correctOptionId)
-      ?.text ?? ''
-  )
+  return feedback?.correctOptionText ?? ''
 })
 
 const isLastQuestion = computed(
@@ -117,14 +110,14 @@ onMounted(async () => {
   }
 })
 
-function selectOption(optionId: string) {
+function selectOption(optionText: string) {
   const question = currentQuestion.value
   if (!question || currentFeedback.value) {
     return
   }
-  selectedByQuestionId.value = {
-    ...selectedByQuestionId.value,
-    [question.id]: optionId,
+  selectedTextByQuestionId.value = {
+    ...selectedTextByQuestionId.value,
+    [question.id]: optionText,
   }
 }
 
@@ -140,9 +133,9 @@ function handleNotSure() {
     return
   }
 
-  const nextSelections = { ...selectedByQuestionId.value }
+  const nextSelections = { ...selectedTextByQuestionId.value }
   delete nextSelections[question.id]
-  selectedByQuestionId.value = nextSelections
+  selectedTextByQuestionId.value = nextSelections
 
   if (!isLastQuestion.value) {
     currentIndex.value += 1
@@ -167,7 +160,7 @@ async function handleCheckAnswer() {
     try {
       const answers = questions.value.map((question) => ({
         questionId: question.id,
-        selectedOptionId: selectedByQuestionId.value[question.id] ?? '',
+        selectedOptionText: selectedTextByQuestionId.value[question.id] ?? '',
       }))
       results.value = await submitQuiz(scenarioId.value, answers)
     } catch {
@@ -183,7 +176,7 @@ async function handleCheckAnswer() {
 
   try {
     const feedback = await checkQuestionAnswer(scenarioId.value, question.id, {
-      selectedOptionId: currentSelection.value,
+      selectedOptionText: currentSelection.value,
     })
     feedbackByQuestionId.value = {
       ...feedbackByQuestionId.value,
@@ -330,33 +323,33 @@ async function handleCheckAnswer() {
           <legend class="visually-hidden">Choose an answer</legend>
           <label
             v-for="option in currentQuestion.options"
-            :key="option.id"
+            :key="option"
             class="quiz-option"
             :class="{
-              'is-selected': currentSelection === option.id,
+              'is-selected': currentSelection === option,
               'is-checked': currentFeedback !== null,
-              'is-correct': currentFeedback?.correctOptionId === option.id,
+              'is-correct': currentFeedback?.correctOptionText === option,
               'is-incorrect':
                 currentFeedback !== null &&
-                currentSelection === option.id &&
+                currentSelection === option &&
                 !currentFeedback.correct,
             }"
           >
             <input
               type="radio"
               :name="currentQuestion.id"
-              :value="option.id"
-              :checked="currentSelection === option.id"
+              :value="option"
+              :checked="currentSelection === option"
               :disabled="currentFeedback !== null"
-              @change="selectOption(option.id)"
+              @change="selectOption(option)"
             />
             <span class="quiz-option__radio" aria-hidden="true">
               <span
-                v-if="currentSelection === option.id"
+                v-if="currentSelection === option"
                 class="quiz-option__radio-dot"
               />
             </span>
-            <span class="quiz-option__text">{{ option.text }}</span>
+            <span class="quiz-option__text">{{ option }}</span>
           </label>
         </fieldset>
 
