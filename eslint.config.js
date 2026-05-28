@@ -9,7 +9,6 @@ export default tseslint.config(
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  ...pluginVue.configs['flat/recommended'],
   {
     files: ['**/*.{ts,mts,tsx,vue}'],
     languageOptions: {
@@ -18,5 +17,9 @@ export default tseslint.config(
       },
     },
   },
+  ...pluginVue.configs['flat/recommended'].map((config) => ({
+    ...config,
+    files: ['**/*.vue'],
+  })),
   eslintConfigPrettier,
 )

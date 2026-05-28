@@ -3,7 +3,7 @@
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.server.tsbuildinfo",
-    "rootDir": "server"
+    "rootDir": "."
   },
-  "include": ["server/**/*.ts"]
+  "include": ["server/**/*.ts", "api/**/*.ts"]
 }

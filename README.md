@@ -32,10 +32,10 @@ npm install
 
 On every push and pull request, GitHub Actions runs:
 
-- `npm run type-check`
-- `npm run lint`
-- `npm run format:check`
-- `npm run build`
+- `npm run type-check` — `src/`, `server/`, and `api/` (via TypeScript project references)
+- `npm run lint` — ESLint on frontend and backend TypeScript/Vue
+- `npm run format:check` — Prettier on the repo (including `server/` and `server/data/*.json`)
+- `npm run build` — production frontend build (`dist/`); Vercel bundles `api/` separately at deploy time
 
 Workflow file: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 
