@@ -8,31 +8,26 @@ export type ScenarioSummary = {
   questionCount: number
 }
 
-export type QuestionOption = {
-  id: string
-  text: string
-}
-
 export type QuizQuestion = {
   id: string
   prompt: string
-  options: QuestionOption[]
+  options: string[]
 }
 
 export type SubmitAnswer = {
   questionId: string
-  selectedOptionId: string
+  selectedOptionText: string
 }
 
 export type CheckAnswerRequest = {
-  selectedOptionId: string
+  selectedOptionText: string
 }
 
 export type QuestionResult = {
   questionId: string
   correct: boolean
-  selectedOptionId: string
-  correctOptionId: string
+  selectedOptionText: string
+  correctOptionText: string
   explanation: string
 }
 

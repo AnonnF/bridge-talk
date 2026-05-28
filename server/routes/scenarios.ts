@@ -25,11 +25,22 @@ function toScenarioSummary(scenario: Scenario): ScenarioSummary {
   }
 }
 
+function shuffleOptions(options: string[]): string[] {
+  const shuffled = [...options]
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    const currentOption = shuffled[index]
+    shuffled[index] = shuffled[swapIndex]
+    shuffled[swapIndex] = currentOption
+  }
+  return shuffled
+}
+
 function toQuizQuestions(scenario: Scenario): QuizQuestion[] {
   return scenario.questions.map((question) => ({
     id: question.id,
     prompt: question.prompt,
-    options: question.options,
+    options: shuffleOptions(question.options),
   }))
 }
 
@@ -41,8 +52,8 @@ function isSubmitAnswer(value: unknown): value is SubmitAnswer {
   return (
     typeof record.questionId === 'string' &&
     record.questionId.trim() !== '' &&
-    typeof record.selectedOptionId === 'string' &&
-    record.selectedOptionId.trim() !== ''
+    typeof record.selectedOptionText === 'string' &&
+    record.selectedOptionText.trim() !== ''
   )
 }
 
@@ -64,17 +75,20 @@ function parseCheckAnswerBody(body: unknown): string | null {
   if (typeof body !== 'object' || body === null) {
     return null
   }
-  const selectedOptionId = (body as CheckAnswerRequestBody).selectedOptionId
-  if (typeof selectedOptionId !== 'string' || selectedOptionId.trim() === '') {
+  const selectedOptionText = (body as CheckAnswerRequestBody).selectedOptionText
+  if (
+    typeof selectedOptionText !== 'string' ||
+    selectedOptionText.trim() === ''
+  ) {
     return null
   }
-  return selectedOptionId
+  return selectedOptionText
 }
 
 function gradeQuestion(
   scenario: Scenario,
   questionId: string,
-  selectedOptionId: string,
+  selectedOptionText: string,
 ): QuestionResult | null {
   const question = scenario.questions.find(
     (candidate) => candidate.id === questionId,
@@ -83,18 +97,17 @@ function gradeQuestion(
     return null
   }
 
-  const selectedOptionExists = question.options.some(
-    (option) => option.id === selectedOptionId,
-  )
+  const selectedOptionExists = question.options.includes(selectedOptionText)
   if (!selectedOptionExists) {
-    throw new Error('UNKNOWN_OPTION_ID')
+    throw new Error('UNKNOWN_OPTION_TEXT')
   }
 
+  const correctOptionText = question.options[0]
   return {
     questionId: question.id,
-    correct: selectedOptionId === question.correctOptionId,
-    selectedOptionId,
-    correctOptionId: question.correctOptionId,
+    correct: selectedOptionText === correctOptionText,
+    selectedOptionText,
+    correctOptionText,
     explanation: question.explanation,
   }
 }
@@ -108,7 +121,7 @@ function gradeSubmission(
     if (answersByQuestionId.has(answer.questionId)) {
       throw new Error('DUPLICATE_QUESTION_ID')
     }
-    answersByQuestionId.set(answer.questionId, answer.selectedOptionId)
+    answersByQuestionId.set(answer.questionId, answer.selectedOptionText)
   }
 
   const questionIds = new Set(scenario.questions.map((question) => question.id))
@@ -119,8 +132,8 @@ function gradeSubmission(
   }
 
   return scenario.questions.map((question) => {
-    const selectedOptionId = answersByQuestionId.get(question.id) ?? ''
-    const result = gradeQuestion(scenario, question.id, selectedOptionId)
+    const selectedOptionText = answersByQuestionId.get(question.id) ?? ''
+    const result = gradeQuestion(scenario, question.id, selectedOptionText)
     if (!result) {
       throw new Error('UNKNOWN_QUESTION_ID')
     }
@@ -154,8 +167,8 @@ export function createScenariosRouter() {
         return
       }
 
-      const selectedOptionId = parseCheckAnswerBody(req.body)
-      if (!selectedOptionId) {
+      const selectedOptionText = parseCheckAnswerBody(req.body)
+      if (!selectedOptionText) {
         res.status(400).json({ error: 'Invalid check body' })
         return
       }
@@ -165,10 +178,10 @@ export function createScenariosRouter() {
         result = gradeQuestion(
           scenario,
           req.params.questionId,
-          selectedOptionId,
+          selectedOptionText,
         )
       } catch (error) {
-        if (error instanceof Error && error.message === 'UNKNOWN_OPTION_ID') {
+        if (error instanceof Error && error.message === 'UNKNOWN_OPTION_TEXT') {
           res.status(400).json({ error: 'Invalid selected option' })
           return
         }
@@ -211,7 +224,8 @@ export function createScenariosRouter() {
       if (
         error instanceof Error &&
         (error.message === 'DUPLICATE_QUESTION_ID' ||
-          error.message === 'UNKNOWN_QUESTION_ID')
+          error.message === 'UNKNOWN_QUESTION_ID' ||
+          error.message === 'UNKNOWN_OPTION_TEXT')
       ) {
         res.status(400).json({ error: 'Invalid answers payload' })
         return

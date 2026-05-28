@@ -10,193 +10,281 @@
           "id": "q1",
           "prompt": "The doctor asks: \"What brings you in today?\" You want to explain your headache clearly. What would you say?",
           "options": [
-            {
-              "id": "a",
-              "text": "I’ve had a headache for two days, and it hasn’t gone away."
-            },
-            {
-              "id": "b",
-              "text": "Headache."
-            },
-            {
-              "id": "c",
-              "text": "I don’t know."
-            },
-            {
-              "id": "d",
-              "text": "Can you just check me?"
-            }
+            "I’ve had a headache for two days, and it hasn’t gone away.",
+            "Headache.",
+            "I don’t know.",
+            "Can you just check me?"
           ],
-          "correctOptionId": "a",
           "explanation": "This answer gives the doctor useful details: what the problem is, how long it has lasted, and that it is still happening."
         },
         {
           "id": "q2",
           "prompt": "The doctor asks: \"Can you describe the pain?\" What is the most helpful answer?",
           "options": [
-            {
-              "id": "a",
-              "text": "It feels like pressure around my forehead."
-            },
-            {
-              "id": "b",
-              "text": "It hurts."
-            },
-            {
-              "id": "c",
-              "text": "I have pain."
-            },
-            {
-              "id": "d",
-              "text": "I’m sick."
-            }
+            "It feels like pressure around my forehead.",
+            "It hurts.",
+            "I have pain.",
+            "I’m sick."
           ],
-          "correctOptionId": "a",
           "explanation": "“It hurts” is understandable, but this answer gives more detail about what the pain feels like and where it is."
         },
         {
           "id": "q3",
           "prompt": "The doctor uses a word you do not understand. What could you say?",
           "options": [
-            {
-              "id": "a",
-              "text": "Could you explain what that means?"
-            },
-            {
-              "id": "b",
-              "text": "I understand."
-            },
-            {
-              "id": "c",
-              "text": "Never mind."
-            },
-            {
-              "id": "d",
-              "text": "That is too confusing."
-            }
+            "Could you explain what that means?",
+            "I understand.",
+            "Never mind.",
+            "That is too confusing."
           ],
-          "correctOptionId": "a",
           "explanation": "Good choice. It is okay to ask for clarification. This helps you understand what the doctor is saying instead of pretending you know."
         },
         {
           "id": "q4",
           "prompt": "You feel nervous and need a moment before answering the doctor. What could you say?",
           "options": [
-            {
-              "id": "a",
-              "text": "Give me a second to think."
-            },
-            {
-              "id": "b",
-              "text": "I can’t talk."
-            },
-            {
-              "id": "c",
-              "text": "You answer for me."
-            },
-            {
-              "id": "d",
-              "text": "Never mind."
-            }
+            "Give me a second to think.",
+            "I can’t talk.",
+            "You answer for me.",
+            "Never mind."
           ],
-          "correctOptionId": "a",
           "explanation": "Good choice. Taking a moment is allowed. This phrase is calm, clear, and helps you stay in the conversation."
         },
         {
           "id": "q5",
           "prompt": "Doctor: \"How long have you had the headache?\" You: \"...\"",
           "options": [
-            {
-              "id": "a",
-              "text": "For about two days."
-            },
-            {
-              "id": "b",
-              "text": "Yes."
-            },
-            {
-              "id": "c",
-              "text": "I think."
-            },
-            {
-              "id": "d",
-              "text": "Headache bad."
-            }
+            "For about two days.",
+            "Yes.",
+            "I think.",
+            "Headache bad."
           ],
-          "correctOptionId": "a",
           "explanation": "Good choice. This directly answers the doctor’s question and gives a clear time period."
         },
         {
           "id": "q6",
           "prompt": "You say: \"I’ve had a headache for two days.\" The doctor asks: \"Have you taken anything for it?\" What could you say next?",
           "options": [
-            {
-              "id": "a",
-              "text": "Yes, I took paracetamol yesterday, but it only helped a little."
-            },
-            {
-              "id": "b",
-              "text": "I have headache."
-            },
-            {
-              "id": "c",
-              "text": "No headache."
-            },
-            {
-              "id": "d",
-              "text": "I don’t want to answer."
-            }
+            "Yes, I took paracetamol yesterday, but it only helped a little.",
+            "I have headache.",
+            "No headache.",
+            "I don’t want to answer."
           ],
-          "correctOptionId": "a",
           "explanation": "Good choice. This answer explains what you took, when you took it, and whether it helped."
         },
         {
           "id": "q7",
           "prompt": "You want to ask the doctor to repeat something. Which option sounds polite and clear?",
           "options": [
-            {
-              "id": "a",
-              "text": "Sorry, could you repeat that?"
-            },
-            {
-              "id": "b",
-              "text": "What?"
-            },
-            {
-              "id": "c",
-              "text": "You’re confusing me."
-            },
-            {
-              "id": "d",
-              "text": "I don’t care."
-            }
+            "Sorry, could you repeat that?",
+            "What?",
+            "You’re confusing me.",
+            "I don’t care."
           ],
-          "correctOptionId": "a",
           "explanation": "Good choice. This is polite and clear. It helps you ask for repetition without sounding rude."
         },
         {
           "id": "q8",
           "prompt": "At the end of the appointment, you are not sure what to do next. What could you ask?",
           "options": [
-            {
-              "id": "a",
-              "text": "Could you explain what I should do next?"
-            },
-            {
-              "id": "b",
-              "text": "Okay, bye."
-            },
-            {
-              "id": "c",
-              "text": "I don’t know anything."
-            },
-            {
-              "id": "d",
-              "text": "You decide."
-            }
+            "Could you explain what I should do next?",
+            "Okay, bye.",
+            "I don’t know anything.",
+            "You decide."
           ],
-          "correctOptionId": "a",
           "explanation": "Good choice. This helps you confirm the next steps before leaving the appointment."
+        }
+      ]
+    },
+    {
+      "id": "ordering-food",
+      "title": "Ordering Food",
+      "description": "Learn to order food, ask questions, make requests, and handle uncertainty politely.",
+      "level": "beginner",
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "The cashier asks: \"What would you like?\" You want to order a chicken sandwich. What could you say?",
+          "options": [
+            "Could I have a chicken sandwich, please?",
+            "Chicken.",
+            "Give food.",
+            "I don’t know."
+          ],
+          "explanation": "This answer clearly says what you want and uses polite language."
+        },
+        {
+          "id": "q2",
+          "prompt": "The cashier asks: \"Would you like anything to drink?\" You want water. What could you say?",
+          "options": [
+            "Yes, could I have a water, please?",
+            "Drink.",
+            "I want things.",
+            "No, water."
+          ],
+          "explanation": "This clearly answers the question and politely asks for the drink you want."
+        },
+        {
+          "id": "q3",
+          "prompt": "You do not understand what the cashier said. What could you say?",
+          "options": [
+            "Sorry, could you say that again?",
+            "Yes.",
+            "Never mind.",
+            "You talk too fast."
+          ],
+          "explanation": "This is a polite way to ask for clarification. It helps you stay in the conversation without being rude."
+        },
+        {
+          "id": "q4",
+          "prompt": "You need more time to choose from the menu. What could you say?",
+          "options": [
+            "Could I have a moment to decide, please?",
+            "Wait.",
+            "I can’t do this.",
+            "You choose."
+          ],
+          "explanation": "This gives you time to think while still sounding calm and polite."
+        },
+        {
+          "id": "q5",
+          "prompt": "You want to ask if the food is spicy. Which question is clearest?",
+          "options": [
+            "Is this spicy?",
+            "This spicy?",
+            "Spicy is it food?",
+            "I spicy?"
+          ],
+          "explanation": "This is a short, clear question that helps you check before ordering."
+        },
+        {
+          "id": "q6",
+          "prompt": "The cashier asks: \"Eat in or takeaway?\" You want to take the food with you. What could you say?",
+          "options": [
+            "Takeaway, please.",
+            "Go away.",
+            "I leave.",
+            "Food outside."
+          ],
+          "explanation": "This directly answers the cashier’s question in a natural way."
+        },
+        {
+          "id": "q7",
+          "prompt": "You ordered the wrong drink by accident. What could you say?",
+          "options": [
+            "Sorry, could I change that to orange juice?",
+            "Wrong. Change it.",
+            "No, bad.",
+            "I don’t want talking."
+          ],
+          "explanation": "This politely explains that you want to change your order and says what you want instead."
+        },
+        {
+          "id": "q8",
+          "prompt": "The cashier says: \"That will be £6.50.\" You want to check if you can pay by card. What could you ask?",
+          "options": [
+            "Can I pay by card?",
+            "Card?",
+            "I pay card now yes?",
+            "Money what?"
+          ],
+          "explanation": "This is a clear and useful question when you are checking how to pay."
+        }
+      ]
+    },
+    {
+      "id": "joining-a-group-conversation",
+      "title": "Joining a Group Conversation",
+      "description": "Practise joining a conversation, responding naturally, asking follow-up questions, and handling moments when you feel unsure.",
+      "level": "intermediate",
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "You arrive at a small group discussion. Two people are already talking about weekend plans. What is the best way to join the conversation?",
+          "options": [
+            "That sounds interesting. Are you talking about plans for this weekend?",
+            "Stop talking, I want to say something.",
+            "I don’t know what you are saying.",
+            "Why did no one ask me?"
+          ],
+          "explanation": "This response joins the conversation politely. It shows interest and asks a question that helps you understand the topic."
+        },
+        {
+          "id": "q2",
+          "prompt": "Someone says: \"We were thinking of going bowling on Saturday.\" You are interested, but you are not sure about the time. What could you ask?",
+          "options": [
+            "That sounds fun. What time are you thinking of going?",
+            "I need all the information now.",
+            "Saturday is a day.",
+            "I don’t understand bowling."
+          ],
+          "explanation": "This answer responds positively first, then asks a clear follow-up question. That keeps the conversation moving naturally."
+        },
+        {
+          "id": "q3",
+          "prompt": "Someone asks: \"Do you usually like group activities?\" You feel a bit nervous but want to answer honestly. What could you say?",
+          "options": [
+            "Sometimes. I enjoy them, but I can feel a bit nervous at first.",
+            "No. Next question.",
+            "I am normal.",
+            "Why are you asking me that?"
+          ],
+          "explanation": "This answer is honest without ending the conversation. It gives the other person something they can understand and respond to."
+        },
+        {
+          "id": "q4",
+          "prompt": "The group starts laughing about something you missed. You want to understand without feeling awkward. What could you say?",
+          "options": [
+            "I think I missed that — what happened?",
+            "Why is everyone laughing?",
+            "That was not funny.",
+            "Forget it."
+          ],
+          "explanation": "This is a calm way to ask for context. It explains that you missed something instead of blaming the group."
+        },
+        {
+          "id": "q5",
+          "prompt": "Someone asks for your opinion: \"What do you think? Should we invite more people?\" You are unsure. What could you say?",
+          "options": [
+            "I’m not completely sure, but maybe a few more people would be nice.",
+            "I don’t think thoughts.",
+            "Do whatever you want.",
+            "That question is too hard."
+          ],
+          "explanation": "This answer shows that it is okay to be unsure. You still contribute an opinion, even if it is not a strong one."
+        },
+        {
+          "id": "q6",
+          "prompt": "You want to say something, but two people are talking at the same time. What is the best way to enter the conversation?",
+          "options": [
+            "Can I add something quickly?",
+            "Everyone be quiet.",
+            "I am speaking now.",
+            "No one lets me talk."
+          ],
+          "explanation": "This is a polite way to take a turn. It signals that you want to speak without interrupting too strongly."
+        },
+        {
+          "id": "q7",
+          "prompt": "Someone mentions a place you have never heard of. You want to keep the conversation going. What could you say?",
+          "options": [
+            "I haven’t heard of that place before. What is it like?",
+            "I do not know that, so I cannot talk.",
+            "That place sounds fake.",
+            "Why would you go there?"
+          ],
+          "explanation": "This response turns not knowing something into a useful question. It invites the other person to explain more."
+        },
+        {
+          "id": "q8",
+          "prompt": "You need to leave the conversation soon, but you want to do it politely. What could you say?",
+          "options": [
+            "I need to head off soon, but it was nice talking with you.",
+            "I am leaving now.",
+            "This conversation is finished.",
+            "Bye."
+          ],
+          "explanation": "This response clearly says you need to leave while still ending the conversation warmly."
         }
       ]
     }
