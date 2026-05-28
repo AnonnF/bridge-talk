@@ -12,7 +12,7 @@ onMounted(async () => {
     scenarios.value = await getScenarios()
   } catch {
     error.value =
-      'Could not load scenarios. Start the API with npm run dev:api or npm run dev:full.'
+      'Could not load scenarios. Check that the API is running and try again.'
   } finally {
     loading.value = false
   }
