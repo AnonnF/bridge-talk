@@ -17,7 +17,9 @@ npm install
 
 | Command                | Description                             |
 | ---------------------- | --------------------------------------- |
-| `npm run dev`          | Start the development server            |
+| `npm run dev`          | Start the Vite dev server               |
+| `npm run dev:api`      | Start the question bank API (port 3001) |
+| `npm run dev:full`     | Start Vite + API together               |
 | `npm run build`        | Type-check and build for production     |
 | `npm run preview`      | Preview the production build locally    |
 | `npm run type-check`   | Run TypeScript checks only              |
@@ -57,7 +59,12 @@ Vercel builds and hosts the site from GitHub. GitHub Actions CI and Vercel deplo
 
 5. Click **Deploy**.
 
-No environment variables are required for the current app. When you add API keys or public config later, set them under **Project → Settings → Environment Variables** in Vercel (and use `import.meta.env` in the app).
+**Question bank API on Vercel:** The Express app in `server/` is deployed as a serverless function at `/api` (see [`api/index.ts`](api/index.ts)). The production frontend calls `/api/...` on the same host — you do **not** need `VITE_API_BASE_URL` unless the API is hosted elsewhere.
+
+| Variable            | When                      | Value                                                                        |
+| ------------------- | ------------------------- | ---------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL` | Local dev only (optional) | `http://localhost:3001` — see [`.env.development`](.env.development)         |
+| `CORS_ORIGIN`       | Optional                  | Override API CORS origin (defaults to Vercel URL or `http://localhost:5173`) |
 
 ### Branch behavior
 
@@ -69,9 +76,9 @@ No environment variables are required for the current app. When you add API keys
 
 Set **Production Branch** to `main` under **Project → Settings → Git**.
 
-### SPA routing
+### SPA routing and API
 
-[`vercel.json`](vercel.json) rewrites unknown paths to `index.html` so client-side routes work once you add Vue Router.
+[`vercel.json`](vercel.json) routes `/api/*` to the serverless API and sends all other paths to `index.html` for Vue Router.
 
 ### Local production preview
 

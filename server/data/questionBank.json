@@ -1,0 +1,60 @@
+{
+  "scenarios": [
+    {
+      "id": "doctors-appointment",
+      "title": "Doctor's Appointment",
+      "description": "Learn to describe symptoms and ask medical questions clearly.",
+      "level": "beginner",
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "You want to tell the doctor when your headache started. Which sentence is clearest?",
+          "options": [
+            { "id": "a", "text": "My head hurts since three days." },
+            { "id": "b", "text": "I have had a headache for three days." },
+            { "id": "c", "text": "Headache me three days." },
+            { "id": "d", "text": "Three days I am headache." }
+          ],
+          "correctOptionId": "b",
+          "explanation": "Use present perfect (have had) with for + duration to describe something that started in the past and continues now."
+        },
+        {
+          "id": "q2",
+          "prompt": "The doctor asks about pain level. How do you politely describe strong pain?",
+          "options": [
+            { "id": "a", "text": "It is very hurt." },
+            { "id": "b", "text": "The pain is quite severe." },
+            { "id": "c", "text": "I pain bad." },
+            { "id": "d", "text": "Pain strong me." }
+          ],
+          "correctOptionId": "b",
+          "explanation": "Severe is a natural word for strong pain in medical conversations. It sounds clear and polite."
+        },
+        {
+          "id": "q3",
+          "prompt": "You need to ask what medicine to take. Which question is correct?",
+          "options": [
+            { "id": "a", "text": "What medicine should I take?" },
+            { "id": "b", "text": "What medicine I should take?" },
+            { "id": "c", "text": "Which medicine take I?" },
+            { "id": "d", "text": "Medicine what I take?" }
+          ],
+          "correctOptionId": "a",
+          "explanation": "In questions with should, use: Should + subject + verb → Should I take."
+        },
+        {
+          "id": "q4",
+          "prompt": "You want to mention another symptom: feeling hot. What do you say?",
+          "options": [
+            { "id": "a", "text": "I also have a fever." },
+            { "id": "b", "text": "I also have fever." },
+            { "id": "c", "text": "I am fever too." },
+            { "id": "d", "text": "Also I fever." }
+          ],
+          "correctOptionId": "a",
+          "explanation": "We usually say have a fever (with a) when talking about your current symptoms."
+        }
+      ]
+    }
+  ]
+}
