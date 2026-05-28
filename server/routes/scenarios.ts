@@ -52,8 +52,7 @@ function isSubmitAnswer(value: unknown): value is SubmitAnswer {
   return (
     typeof record.questionId === 'string' &&
     record.questionId.trim() !== '' &&
-    typeof record.selectedOptionText === 'string' &&
-    record.selectedOptionText.trim() !== ''
+    typeof record.selectedOptionText === 'string'
   )
 }
 
@@ -95,6 +94,17 @@ function gradeQuestion(
   )
   if (!question) {
     return null
+  }
+
+  if (selectedOptionText.trim() === '') {
+    const correctOptionText = question.options[0]
+    return {
+      questionId: question.id,
+      correct: false,
+      selectedOptionText: '',
+      correctOptionText,
+      explanation: question.explanation,
+    }
   }
 
   const selectedOptionExists = question.options.includes(selectedOptionText)

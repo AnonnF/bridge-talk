@@ -87,6 +87,12 @@ const showQuiz = computed(
   () => !loading.value && !results.value && currentQuestion.value !== null,
 )
 
+const incorrectAnswerCount = computed(() =>
+  results.value
+    ? results.value.results.filter((result) => !result.correct).length
+    : 0,
+)
+
 onMounted(async () => {
   try {
     const [scenarios, questionsResponse] = await Promise.all([
@@ -127,6 +133,23 @@ function goToPrevious() {
   }
 }
 
+async function submitCurrentQuiz() {
+  submitting.value = true
+  error.value = null
+
+  try {
+    const answers = questions.value.map((question) => ({
+      questionId: question.id,
+      selectedOptionText: selectedTextByQuestionId.value[question.id] ?? '',
+    }))
+    results.value = await submitQuiz(scenarioId.value, answers)
+  } catch {
+    error.value = 'Could not submit your answers. Please try again.'
+  } finally {
+    submitting.value = false
+  }
+}
+
 function handleNotSure() {
   const question = currentQuestion.value
   if (!question || currentFeedback.value || submitting.value) {
@@ -139,7 +162,10 @@ function handleNotSure() {
 
   if (!isLastQuestion.value) {
     currentIndex.value += 1
+    return
   }
+
+  void submitCurrentQuiz()
 }
 
 async function handleCheckAnswer() {
@@ -154,20 +180,7 @@ async function handleCheckAnswer() {
   }
 
   if (currentFeedback.value && isLastQuestion.value) {
-    submitting.value = true
-    error.value = null
-
-    try {
-      const answers = questions.value.map((question) => ({
-        questionId: question.id,
-        selectedOptionText: selectedTextByQuestionId.value[question.id] ?? '',
-      }))
-      results.value = await submitQuiz(scenarioId.value, answers)
-    } catch {
-      error.value = 'Could not submit your answers. Please try again.'
-    } finally {
-      submitting.value = false
-    }
+    await submitCurrentQuiz()
     return
   }
 
@@ -259,7 +272,7 @@ async function handleCheckAnswer() {
         </p>
 
         <div class="quiz-results__report">
-          <p>AI-generated Report here.</p>
+          <p>Summary report here.</p>
         </div>
 
         <BaseButton to="/practice" size="sm">Back to practice</BaseButton>
