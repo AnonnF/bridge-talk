@@ -1,12 +1,30 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import BaseButton from '../ui/BaseButton.vue'
+import { useAuth } from '../../composables/useAuth'
+
+const { initializeAuth, isAuthenticated, loading, signOut, user } = useAuth()
+
+onMounted(() => {
+  void initializeAuth()
+})
+
+async function handleSignOut() {
+  await signOut()
+}
 </script>
 
 <template>
   <header class="site-header">
     <div class="site-header__inner">
       <RouterLink to="/" class="logo">BridgeTalk</RouterLink>
-      <BaseButton to="/practice" size="sm">Start Practicing</BaseButton>
+      <div class="site-header__actions">
+        <BaseButton to="/practice" size="sm">Start Practicing</BaseButton>
+        <BaseButton v-if="!loading && !isAuthenticated" to="/login" size="sm">Sign in</BaseButton>
+        <button v-else-if="!loading && isAuthenticated" type="button" class="auth-chip" @click="handleSignOut">
+          {{ user?.email ?? 'Sign out' }}
+        </button>
+      </div>
     </div>
   </header>
 </template>
@@ -28,6 +46,14 @@ import BaseButton from '../ui/BaseButton.vue'
   align-items: center;
   justify-content: space-between;
   pointer-events: auto;
+  gap: 1rem;
+}
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .logo {
@@ -43,5 +69,21 @@ import BaseButton from '../ui/BaseButton.vue'
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
   border-radius: 4px;
+}
+
+.auth-chip {
+  border: 1px solid rgba(61, 69, 65, 0.16);
+  border-radius: var(--radius-pill);
+  padding: 0.5625rem 1rem;
+  background: rgba(250, 248, 245, 0.9);
+  color: var(--color-text-strong);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.auth-chip:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 </style>

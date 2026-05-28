@@ -73,6 +73,41 @@ Set **Production Branch** to `main` under **Project → Settings → Git**.
 
 [`vercel.json`](vercel.json) rewrites unknown paths to `index.html` so client-side routes work once you add Vue Router.
 
+## Supabase login
+
+This app uses Supabase directly from the frontend for authentication, so you do not need a custom backend for basic login and sign-up.
+
+### Required credentials
+
+Add these values to your local `.env` file and to your Vercel project environment variables:
+
+- `VITE_SUPABASE_URL` - your Supabase Project URL
+- `VITE_SUPABASE_ANON_KEY` - your Supabase anon public key
+
+Do not use the service role key in the frontend.
+
+### Supabase setup
+
+1. In Supabase, go to **Project Settings → API** and copy the Project URL and anon public key.
+2. In **Authentication → URL Configuration**, add your site URLs to the allowed redirect URLs.
+3. For local development, include `http://localhost:5173`.
+4. For Vercel, add your production domain and any preview URLs you plan to use.
+
+### Local env file
+
+Create a `.env` file next to `package.json` with:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### Login flow
+
+- Visit `/login` to sign in or create an account.
+- The header shows your auth state and lets you sign out.
+- No extra backend code is required unless you later need privileged server-side access to Supabase.
+
 ### Local production preview
 
 ```bash
