@@ -1,3 +1,32 @@
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { getScenarios } from '../services/questionBankApi'
+import type { ScenarioSummary } from '../types/questionBank'
+
+const scenarios = ref<ScenarioSummary[]>([])
+const loading = ref(true)
+const error = ref<string | null>(null)
+
+onMounted(async () => {
+  try {
+    scenarios.value = await getScenarios()
+  } catch {
+    error.value =
+      'Could not load scenarios. Start the API with npm run dev:api or npm run dev:full.'
+  } finally {
+    loading.value = false
+  }
+})
+
+function formatLevel(level: ScenarioSummary['level']): string {
+  return level.charAt(0).toUpperCase() + level.slice(1)
+}
+
+function formatQuestionCount(count: number): string {
+  return count === 1 ? '1 Question' : `${count} Questions`
+}
+</script>
+
 <template>
   <div class="practice-page">
     <main class="practice-main">
@@ -9,73 +38,97 @@
           </p>
         </div>
 
-        <article class="scenario-card">
-          <span class="scenario-card__icon" aria-hidden="true">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M6 3v5a5 5 0 0 0 10 0V3"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M9 3H5"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              />
-              <path
-                d="M17 3h-4"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              />
-              <path
-                d="M11 13v2.5A4.5 4.5 0 0 0 15.5 20H16"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <circle
-                cx="18"
-                cy="20"
-                r="2"
-                stroke="currentColor"
-                stroke-width="2"
-              />
-            </svg>
-          </span>
+        <p v-if="loading" class="question-bank__status" role="status">
+          Loading scenarios…
+        </p>
 
-          <span class="scenario-card__content">
-            <span class="scenario-card__title">Doctor's Appointment</span>
-            <span class="scenario-card__description">
-              Learn to describe symptoms and ask medical questions clearly.
-            </span>
-          </span>
+        <p
+          v-else-if="error"
+          class="question-bank__status question-bank__status--error"
+          role="alert"
+        >
+          {{ error }}
+        </p>
 
-          <span class="scenario-card__meta">
-            <span class="scenario-card__level">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                fill="none"
-                aria-hidden="true"
-              >
-                <circle cx="8" cy="8" r="5.5" stroke="currentColor" />
-                <circle cx="8" cy="8" r="2.5" stroke="currentColor" />
-                <circle cx="8" cy="8" r="1" fill="currentColor" />
-              </svg>
-              Beginner
-            </span>
-            <span>1 Question</span>
-          </span>
-        </article>
+        <p
+          v-else-if="scenarios.length === 0"
+          class="question-bank__status"
+          role="status"
+        >
+          No scenarios available yet.
+        </p>
+
+        <ul v-else class="scenario-list">
+          <li v-for="scenario in scenarios" :key="scenario.id">
+            <RouterLink :to="`/practice/${scenario.id}`" class="scenario-card">
+              <span class="scenario-card__icon" aria-hidden="true">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M6 3v5a5 5 0 0 0 10 0V3"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M9 3H5"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M17 3h-4"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M11 13v2.5A4.5 4.5 0 0 0 15.5 20H16"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <circle
+                    cx="18"
+                    cy="20"
+                    r="2"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                </svg>
+              </span>
+
+              <span class="scenario-card__content">
+                <span class="scenario-card__title">{{ scenario.title }}</span>
+                <span class="scenario-card__description">
+                  {{ scenario.description }}
+                </span>
+              </span>
+
+              <span class="scenario-card__meta">
+                <span class="scenario-card__level">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <circle cx="8" cy="8" r="5.5" stroke="currentColor" />
+                    <circle cx="8" cy="8" r="2.5" stroke="currentColor" />
+                    <circle cx="8" cy="8" r="1" fill="currentColor" />
+                  </svg>
+                  {{ formatLevel(scenario.level) }}
+                </span>
+                <span>{{ formatQuestionCount(scenario.questionCount) }}</span>
+              </span>
+            </RouterLink>
+          </li>
+        </ul>
       </section>
     </main>
   </div>
@@ -118,6 +171,28 @@
   font-size: 1rem;
   line-height: 1.5;
   color: var(--color-text);
+}
+
+.question-bank__status {
+  margin: 0;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.question-bank__status--error {
+  color: var(--color-text-strong);
+}
+
+.scenario-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.25rem, 1fr));
+  gap: 1.5rem;
+  justify-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .scenario-card {
@@ -200,10 +275,6 @@
 @media (max-width: 37.5rem) {
   .practice-main {
     padding-top: 1.5rem;
-  }
-
-  .scenario-card {
-    margin-inline: auto;
   }
 }
 </style>
