@@ -3,56 +3,200 @@
     {
       "id": "doctors-appointment",
       "title": "Doctor's Appointment",
-      "description": "Learn to describe symptoms and ask medical questions clearly.",
+      "description": "Learn to describe symptoms, ask medical questions, and handle uncertainty clearly.",
       "level": "beginner",
       "questions": [
         {
           "id": "q1",
-          "prompt": "You want to tell the doctor when your headache started. Which sentence is clearest?",
+          "prompt": "The doctor asks: \"What brings you in today?\" You want to explain your headache clearly. What would you say?",
           "options": [
-            { "id": "a", "text": "My head hurts since three days." },
-            { "id": "b", "text": "I have had a headache for three days." },
-            { "id": "c", "text": "Headache me three days." },
-            { "id": "d", "text": "Three days I am headache." }
+            {
+              "id": "a",
+              "text": "I’ve had a headache for two days, and it hasn’t gone away."
+            },
+            {
+              "id": "b",
+              "text": "Headache."
+            },
+            {
+              "id": "c",
+              "text": "I don’t know."
+            },
+            {
+              "id": "d",
+              "text": "Can you just check me?"
+            }
           ],
-          "correctOptionId": "b",
-          "explanation": "Use present perfect (have had) with for + duration to describe something that started in the past and continues now."
+          "correctOptionId": "a",
+          "explanation": "This answer gives the doctor useful details: what the problem is, how long it has lasted, and that it is still happening."
         },
         {
           "id": "q2",
-          "prompt": "The doctor asks about pain level. How do you politely describe strong pain?",
+          "prompt": "The doctor asks: \"Can you describe the pain?\" What is the most helpful answer?",
           "options": [
-            { "id": "a", "text": "It is very hurt." },
-            { "id": "b", "text": "The pain is quite severe." },
-            { "id": "c", "text": "I pain bad." },
-            { "id": "d", "text": "Pain strong me." }
+            {
+              "id": "a",
+              "text": "It feels like pressure around my forehead."
+            },
+            {
+              "id": "b",
+              "text": "It hurts."
+            },
+            {
+              "id": "c",
+              "text": "I have pain."
+            },
+            {
+              "id": "d",
+              "text": "I’m sick."
+            }
           ],
-          "correctOptionId": "b",
-          "explanation": "Severe is a natural word for strong pain in medical conversations. It sounds clear and polite."
+          "correctOptionId": "a",
+          "explanation": "“It hurts” is understandable, but this answer gives more detail about what the pain feels like and where it is."
         },
         {
           "id": "q3",
-          "prompt": "You need to ask what medicine to take. Which question is correct?",
+          "prompt": "The doctor uses a word you do not understand. What could you say?",
           "options": [
-            { "id": "a", "text": "What medicine should I take?" },
-            { "id": "b", "text": "What medicine I should take?" },
-            { "id": "c", "text": "Which medicine take I?" },
-            { "id": "d", "text": "Medicine what I take?" }
+            {
+              "id": "a",
+              "text": "Could you explain what that means?"
+            },
+            {
+              "id": "b",
+              "text": "I understand."
+            },
+            {
+              "id": "c",
+              "text": "Never mind."
+            },
+            {
+              "id": "d",
+              "text": "That is too confusing."
+            }
           ],
           "correctOptionId": "a",
-          "explanation": "In questions with should, use: Should + subject + verb → Should I take."
+          "explanation": "Good choice. It is okay to ask for clarification. This helps you understand what the doctor is saying instead of pretending you know."
         },
         {
           "id": "q4",
-          "prompt": "You want to mention another symptom: feeling hot. What do you say?",
+          "prompt": "You feel nervous and need a moment before answering the doctor. What could you say?",
           "options": [
-            { "id": "a", "text": "I also have a fever." },
-            { "id": "b", "text": "I also have fever." },
-            { "id": "c", "text": "I am fever too." },
-            { "id": "d", "text": "Also I fever." }
+            {
+              "id": "a",
+              "text": "Give me a second to think."
+            },
+            {
+              "id": "b",
+              "text": "I can’t talk."
+            },
+            {
+              "id": "c",
+              "text": "You answer for me."
+            },
+            {
+              "id": "d",
+              "text": "Never mind."
+            }
           ],
           "correctOptionId": "a",
-          "explanation": "We usually say have a fever (with a) when talking about your current symptoms."
+          "explanation": "Good choice. Taking a moment is allowed. This phrase is calm, clear, and helps you stay in the conversation."
+        },
+        {
+          "id": "q5",
+          "prompt": "Doctor: \"How long have you had the headache?\" You: \"...\"",
+          "options": [
+            {
+              "id": "a",
+              "text": "For about two days."
+            },
+            {
+              "id": "b",
+              "text": "Yes."
+            },
+            {
+              "id": "c",
+              "text": "I think."
+            },
+            {
+              "id": "d",
+              "text": "Headache bad."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "Good choice. This directly answers the doctor’s question and gives a clear time period."
+        },
+        {
+          "id": "q6",
+          "prompt": "You say: \"I’ve had a headache for two days.\" The doctor asks: \"Have you taken anything for it?\" What could you say next?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Yes, I took paracetamol yesterday, but it only helped a little."
+            },
+            {
+              "id": "b",
+              "text": "I have headache."
+            },
+            {
+              "id": "c",
+              "text": "No headache."
+            },
+            {
+              "id": "d",
+              "text": "I don’t want to answer."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "Good choice. This answer explains what you took, when you took it, and whether it helped."
+        },
+        {
+          "id": "q7",
+          "prompt": "You want to ask the doctor to repeat something. Which option sounds polite and clear?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sorry, could you repeat that?"
+            },
+            {
+              "id": "b",
+              "text": "What?"
+            },
+            {
+              "id": "c",
+              "text": "You’re confusing me."
+            },
+            {
+              "id": "d",
+              "text": "I don’t care."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "Good choice. This is polite and clear. It helps you ask for repetition without sounding rude."
+        },
+        {
+          "id": "q8",
+          "prompt": "At the end of the appointment, you are not sure what to do next. What could you ask?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Could you explain what I should do next?"
+            },
+            {
+              "id": "b",
+              "text": "Okay, bye."
+            },
+            {
+              "id": "c",
+              "text": "I don’t know anything."
+            },
+            {
+              "id": "d",
+              "text": "You decide."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "Good choice. This helps you confirm the next steps before leaving the appointment."
         }
       ]
     }

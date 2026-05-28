@@ -3,11 +3,16 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import BaseButton from '../components/ui/BaseButton.vue'
 import {
+  checkQuestionAnswer,
   getScenarioQuestions,
   getScenarios,
   submitQuiz,
 } from '../services/questionBankApi'
-import type { QuizQuestion, SubmitResponse } from '../types/questionBank'
+import type {
+  QuestionResult,
+  QuizQuestion,
+  SubmitResponse,
+} from '../types/questionBank'
 
 const route = useRoute()
 const scenarioId = computed(() => String(route.params.scenarioId))
@@ -19,6 +24,7 @@ const error = ref<string | null>(null)
 
 const currentIndex = ref(0)
 const selectedByQuestionId = ref<Record<string, string>>({})
+const feedbackByQuestionId = ref<Record<string, QuestionResult>>({})
 const submitting = ref(false)
 const results = ref<SubmitResponse | null>(null)
 
@@ -34,11 +40,48 @@ const currentSelection = computed(() => {
   return selectedByQuestionId.value[question.id] ?? ''
 })
 
+const currentFeedback = computed(() => {
+  const question = currentQuestion.value
+  if (!question) {
+    return null
+  }
+  return feedbackByQuestionId.value[question.id] ?? null
+})
+
+const currentCorrectAnswerText = computed(() => {
+  const question = currentQuestion.value
+  const feedback = currentFeedback.value
+  if (!question || !feedback) {
+    return ''
+  }
+  return (
+    question.options.find((option) => option.id === feedback.correctOptionId)
+      ?.text ?? ''
+  )
+})
+
 const isLastQuestion = computed(
   () => currentIndex.value === questions.value.length - 1,
 )
 
 const canAdvance = computed(() => currentSelection.value !== '')
+
+const canUsePrimaryAction = computed(
+  () =>
+    (currentFeedback.value !== null || canAdvance.value) && !submitting.value,
+)
+
+const primaryActionLabel = computed(() => {
+  if (submitting.value) {
+    return currentFeedback.value && isLastQuestion.value
+      ? 'Submitting...'
+      : 'Checking...'
+  }
+  if (currentFeedback.value) {
+    return isLastQuestion.value ? 'See Results' : 'Next'
+  }
+  return 'Check Answer'
+})
 
 const progressPercent = computed(() => {
   if (questions.value.length === 0) {
@@ -76,7 +119,7 @@ onMounted(async () => {
 
 function selectOption(optionId: string) {
   const question = currentQuestion.value
-  if (!question) {
+  if (!question || currentFeedback.value) {
     return
   }
   selectedByQuestionId.value = {
@@ -93,7 +136,7 @@ function goToPrevious() {
 
 function handleNotSure() {
   const question = currentQuestion.value
-  if (!question) {
+  if (!question || currentFeedback.value || submitting.value) {
     return
   }
 
@@ -107,12 +150,31 @@ function handleNotSure() {
 }
 
 async function handleCheckAnswer() {
-  if (!canAdvance.value || submitting.value) {
+  const question = currentQuestion.value
+  if (!question || !canUsePrimaryAction.value) {
     return
   }
 
-  if (!isLastQuestion.value) {
+  if (currentFeedback.value && !isLastQuestion.value) {
     currentIndex.value += 1
+    return
+  }
+
+  if (currentFeedback.value && isLastQuestion.value) {
+    submitting.value = true
+    error.value = null
+
+    try {
+      const answers = questions.value.map((question) => ({
+        questionId: question.id,
+        selectedOptionId: selectedByQuestionId.value[question.id] ?? '',
+      }))
+      results.value = await submitQuiz(scenarioId.value, answers)
+    } catch {
+      error.value = 'Could not submit your answers. Please try again.'
+    } finally {
+      submitting.value = false
+    }
     return
   }
 
@@ -120,13 +182,15 @@ async function handleCheckAnswer() {
   error.value = null
 
   try {
-    const answers = questions.value.map((question) => ({
-      questionId: question.id,
-      selectedOptionId: selectedByQuestionId.value[question.id] ?? '',
-    }))
-    results.value = await submitQuiz(scenarioId.value, answers)
+    const feedback = await checkQuestionAnswer(scenarioId.value, question.id, {
+      selectedOptionId: currentSelection.value,
+    })
+    feedbackByQuestionId.value = {
+      ...feedbackByQuestionId.value,
+      [question.id]: feedback,
+    }
   } catch {
-    error.value = 'Could not submit your answers. Please try again.'
+    error.value = 'Could not check your answer. Please try again.'
   } finally {
     submitting.value = false
   }
@@ -201,19 +265,9 @@ async function handleCheckAnswer() {
           You scored {{ results.score }} / {{ results.total }}
         </p>
 
-        <ul class="quiz-results__list">
-          <li
-            v-for="item in results.results"
-            :key="item.questionId"
-            class="quiz-results__item"
-            :class="item.correct ? 'is-correct' : 'is-incorrect'"
-          >
-            <p class="quiz-results__verdict">
-              {{ item.correct ? 'Correct' : 'Incorrect' }}
-            </p>
-            <p class="quiz-results__explanation">{{ item.explanation }}</p>
-          </li>
-        </ul>
+        <div class="quiz-results__report">
+          <p>AI-generated Report here.</p>
+        </div>
 
         <BaseButton to="/practice" size="sm">Back to practice</BaseButton>
       </section>
@@ -278,13 +332,22 @@ async function handleCheckAnswer() {
             v-for="option in currentQuestion.options"
             :key="option.id"
             class="quiz-option"
-            :class="{ 'is-selected': currentSelection === option.id }"
+            :class="{
+              'is-selected': currentSelection === option.id,
+              'is-checked': currentFeedback !== null,
+              'is-correct': currentFeedback?.correctOptionId === option.id,
+              'is-incorrect':
+                currentFeedback !== null &&
+                currentSelection === option.id &&
+                !currentFeedback.correct,
+            }"
           >
             <input
               type="radio"
               :name="currentQuestion.id"
               :value="option.id"
               :checked="currentSelection === option.id"
+              :disabled="currentFeedback !== null"
               @change="selectOption(option.id)"
             />
             <span class="quiz-option__radio" aria-hidden="true">
@@ -297,6 +360,28 @@ async function handleCheckAnswer() {
           </label>
         </fieldset>
 
+        <div
+          v-if="currentFeedback"
+          class="quiz-feedback"
+          :class="
+            currentFeedback.correct
+              ? 'quiz-feedback--correct'
+              : 'quiz-feedback--incorrect'
+          "
+          role="status"
+        >
+          <p class="quiz-feedback__verdict">
+            {{ currentFeedback.correct ? 'Correct' : 'Incorrect' }}
+          </p>
+          <div v-if="!currentFeedback.correct" class="quiz-feedback__answer">
+            <span>Correct answer</span>
+            <p>{{ currentCorrectAnswerText }}</p>
+          </div>
+          <p class="quiz-feedback__explanation">
+            {{ currentFeedback.explanation }}
+          </p>
+        </div>
+
         <p v-if="error" class="quiz-status quiz-status--error" role="alert">
           {{ error }}
         </p>
@@ -306,7 +391,12 @@ async function handleCheckAnswer() {
     </main>
 
     <footer v-if="showQuiz" class="quiz-footer">
-      <button type="button" class="quiz-footer__unsure" @click="handleNotSure">
+      <button
+        type="button"
+        class="quiz-footer__unsure"
+        :disabled="currentFeedback !== null || submitting"
+        @click="handleNotSure"
+      >
         I'm not sure
       </button>
 
@@ -322,10 +412,10 @@ async function handleCheckAnswer() {
 
         <BaseButton
           size="sm"
-          :class="{ 'is-disabled': !canAdvance || submitting }"
+          :class="{ 'is-disabled': !canUsePrimaryAction }"
           @click="handleCheckAnswer"
         >
-          {{ submitting ? 'Submitting…' : 'Check Answer' }}
+          {{ primaryActionLabel }}
         </BaseButton>
       </div>
     </footer>
@@ -507,6 +597,10 @@ async function handleCheckAnswer() {
   color: var(--color-text-strong);
 }
 
+.quiz-option.is-checked {
+  cursor: default;
+}
+
 .quiz-option:focus-within {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
@@ -537,6 +631,30 @@ async function handleCheckAnswer() {
 
 .quiz-option.is-selected .quiz-option__radio {
   border-color: var(--color-text-strong);
+}
+
+.quiz-option.is-correct {
+  border: 2px solid #2e7d4f;
+}
+
+.quiz-option.is-incorrect {
+  border: 2px solid #b3261e;
+}
+
+.quiz-option.is-correct .quiz-option__radio {
+  border-color: #2e7d4f;
+}
+
+.quiz-option.is-incorrect .quiz-option__radio {
+  border-color: #b3261e;
+}
+
+.quiz-option.is-correct .quiz-option__radio-dot {
+  background: #2e7d4f;
+}
+
+.quiz-option.is-incorrect .quiz-option__radio-dot {
+  background: #b3261e;
 }
 
 .quiz-option__radio-dot {
@@ -578,6 +696,11 @@ async function handleCheckAnswer() {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
   border-radius: 4px;
+}
+
+.quiz-footer__unsure:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .quiz-footer__actions {
@@ -631,6 +754,56 @@ async function handleCheckAnswer() {
   color: var(--color-text-strong);
 }
 
+.quiz-feedback {
+  display: grid;
+  gap: 0.875rem;
+  padding: 1rem;
+  border-left: 4px solid #2e7d4f;
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 0.7);
+  font-family: var(--font-sans);
+}
+
+.quiz-feedback--incorrect {
+  border-left-color: #b3261e;
+}
+
+.quiz-feedback__verdict {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  color: var(--color-text-strong);
+}
+
+.quiz-feedback__answer {
+  display: grid;
+  gap: 0.375rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: var(--color-text-strong);
+}
+
+.quiz-feedback__answer span {
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  color: var(--color-text);
+  text-transform: uppercase;
+}
+
+.quiz-feedback__answer p,
+.quiz-feedback__explanation {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.quiz-feedback__explanation {
+  color: var(--color-text);
+}
+
 .quiz-results {
   width: 100%;
   max-width: 48rem;
@@ -654,36 +827,13 @@ async function handleCheckAnswer() {
   color: var(--color-text);
 }
 
-.quiz-results__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 1rem;
-}
-
-.quiz-results__item {
+.quiz-results__report {
   padding: 1rem 1.125rem;
   border-radius: 1rem;
   background: rgb(255 255 255 / 0.7);
 }
 
-.quiz-results__item.is-correct {
-  border-left: 4px solid #2e7d4f;
-}
-
-.quiz-results__item.is-incorrect {
-  border-left: 4px solid #b3261e;
-}
-
-.quiz-results__verdict {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-sans);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-strong);
-}
-
-.quiz-results__explanation {
+.quiz-results__report p {
   margin: 0;
   font-family: var(--font-sans);
   font-size: 0.9375rem;

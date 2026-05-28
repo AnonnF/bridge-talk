@@ -1,4 +1,6 @@
 import type {
+  CheckAnswerRequest,
+  QuestionResult,
   QuizQuestionsResponse,
   ScenarioSummary,
   SubmitAnswer,
@@ -47,6 +49,23 @@ export function submitQuiz(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ answers }),
+    },
+  )
+}
+
+export function checkQuestionAnswer(
+  scenarioId: string,
+  questionId: string,
+  answer: CheckAnswerRequest,
+): Promise<QuestionResult> {
+  return apiFetch<QuestionResult>(
+    `/api/scenarios/${encodeURIComponent(scenarioId)}/questions/${encodeURIComponent(
+      questionId,
+    )}/check`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(answer),
     },
   )
 }
