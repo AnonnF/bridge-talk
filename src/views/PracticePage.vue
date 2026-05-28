@@ -60,9 +60,49 @@ function formatQuestionCount(count: number): string {
 
         <ul v-else class="scenario-list">
           <li v-for="scenario in scenarios" :key="scenario.id">
-            <RouterLink :to="`/practice/${scenario.id}`" class="scenario-card">
+            <RouterLink
+              :to="`/practice/${scenario.id}`"
+              :class="['scenario-card', `scenario-card--${scenario.id}`]"
+            >
               <span class="scenario-card__icon" aria-hidden="true">
                 <svg
+                  v-if="scenario.id === 'ordering-food'"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M7 2v20"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M21 15v7"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+
+                <svg
+                  v-else
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="none"
@@ -113,14 +153,36 @@ function formatQuestionCount(count: number): string {
               <span class="scenario-card__meta">
                 <span class="scenario-card__level">
                   <svg
+                    :class="[
+                      'scenario-card__level-icon',
+                      `scenario-card__level-icon--${scenario.level}`,
+                    ]"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 16 16"
                     fill="none"
                     aria-hidden="true"
                   >
-                    <circle cx="8" cy="8" r="5.5" stroke="currentColor" />
-                    <circle cx="8" cy="8" r="2.5" stroke="currentColor" />
-                    <circle cx="8" cy="8" r="1" fill="currentColor" />
+                    <path
+                      class="scenario-card__level-bar scenario-card__level-bar--one"
+                      d="M3 13V9"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      class="scenario-card__level-bar scenario-card__level-bar--two"
+                      d="M8 13V6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      class="scenario-card__level-bar scenario-card__level-bar--three"
+                      d="M13 13V3"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
                   </svg>
                   {{ formatLevel(scenario.level) }}
                 </span>
@@ -207,6 +269,10 @@ function formatQuestionCount(count: number): string {
   border-radius: 1.25rem;
 }
 
+.scenario-card--ordering-food {
+  background: #ffe8cc;
+}
+
 .scenario-card:focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
@@ -220,6 +286,10 @@ function formatQuestionCount(count: number): string {
   color: var(--color-text-strong);
   background: rgb(255 255 255 / 0.6);
   border-radius: 1rem;
+}
+
+.scenario-card--ordering-food .scenario-card__icon {
+  color: #7a4300;
 }
 
 .scenario-card__icon svg {
@@ -266,10 +336,21 @@ function formatQuestionCount(count: number): string {
   gap: 0.4375rem;
 }
 
-.scenario-card__level svg {
+.scenario-card__level-icon {
   width: 0.8125rem;
   height: 0.8125rem;
   flex-shrink: 0;
+}
+
+.scenario-card__level-bar {
+  opacity: 0.28;
+}
+
+.scenario-card__level-icon--beginner .scenario-card__level-bar--one,
+.scenario-card__level-icon--intermediate .scenario-card__level-bar--one,
+.scenario-card__level-icon--intermediate .scenario-card__level-bar--two,
+.scenario-card__level-icon--advanced .scenario-card__level-bar {
+  opacity: 1;
 }
 
 @media (max-width: 37.5rem) {

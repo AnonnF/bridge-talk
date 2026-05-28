@@ -199,6 +199,206 @@
           "explanation": "Good choice. This helps you confirm the next steps before leaving the appointment."
         }
       ]
+    },
+    {
+      "id": "ordering-food",
+      "title": "Ordering Food",
+      "description": "Learn to order food, ask questions, make requests, and handle uncertainty politely.",
+      "level": "beginner",
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "The cashier asks: \"What would you like?\" You want to order a chicken sandwich. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Could I have a chicken sandwich, please?"
+            },
+            {
+              "id": "b",
+              "text": "Chicken."
+            },
+            {
+              "id": "c",
+              "text": "Give food."
+            },
+            {
+              "id": "d",
+              "text": "I don’t know."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This answer clearly says what you want and uses polite language."
+        },
+        {
+          "id": "q2",
+          "prompt": "The cashier asks: \"Would you like anything to drink?\" You want water. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Yes, could I have a water, please?"
+            },
+            {
+              "id": "b",
+              "text": "Drink."
+            },
+            {
+              "id": "c",
+              "text": "I want things."
+            },
+            {
+              "id": "d",
+              "text": "No, water."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This clearly answers the question and politely asks for the drink you want."
+        },
+        {
+          "id": "q3",
+          "prompt": "You do not understand what the cashier said. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sorry, could you say that again?"
+            },
+            {
+              "id": "b",
+              "text": "Yes."
+            },
+            {
+              "id": "c",
+              "text": "Never mind."
+            },
+            {
+              "id": "d",
+              "text": "You talk too fast."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This is a polite way to ask for clarification. It helps you stay in the conversation without being rude."
+        },
+        {
+          "id": "q4",
+          "prompt": "You need more time to choose from the menu. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Could I have a moment to decide, please?"
+            },
+            {
+              "id": "b",
+              "text": "Wait."
+            },
+            {
+              "id": "c",
+              "text": "I can’t do this."
+            },
+            {
+              "id": "d",
+              "text": "You choose."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This gives you time to think while still sounding calm and polite."
+        },
+        {
+          "id": "q5",
+          "prompt": "You want to ask if the food is spicy. Which question is clearest?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Is this spicy?"
+            },
+            {
+              "id": "b",
+              "text": "This spicy?"
+            },
+            {
+              "id": "c",
+              "text": "Spicy is it food?"
+            },
+            {
+              "id": "d",
+              "text": "I spicy?"
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This is a short, clear question that helps you check before ordering."
+        },
+        {
+          "id": "q6",
+          "prompt": "The cashier asks: \"Eat in or takeaway?\" You want to take the food with you. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Takeaway, please."
+            },
+            {
+              "id": "b",
+              "text": "Go away."
+            },
+            {
+              "id": "c",
+              "text": "I leave."
+            },
+            {
+              "id": "d",
+              "text": "Food outside."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This directly answers the cashier’s question in a natural way."
+        },
+        {
+          "id": "q7",
+          "prompt": "You ordered the wrong drink by accident. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sorry, could I change that to orange juice?"
+            },
+            {
+              "id": "b",
+              "text": "Wrong. Change it."
+            },
+            {
+              "id": "c",
+              "text": "No, bad."
+            },
+            {
+              "id": "d",
+              "text": "I don’t want talking."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This politely explains that you want to change your order and says what you want instead."
+        },
+        {
+          "id": "q8",
+          "prompt": "The cashier says: \"That will be £6.50.\" You want to check if you can pay by card. What could you ask?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Can I pay by card?"
+            },
+            {
+              "id": "b",
+              "text": "Card?"
+            },
+            {
+              "id": "c",
+              "text": "I pay card now yes?"
+            },
+            {
+              "id": "d",
+              "text": "Money what?"
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This is a clear and useful question when you are checking how to pay."
+        }
+      ]
     }
   ]
 }
