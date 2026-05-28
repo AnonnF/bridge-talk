@@ -399,6 +399,206 @@
           "explanation": "This is a clear and useful question when you are checking how to pay."
         }
       ]
+    },
+    {
+      "id": "joining-a-group-conversation",
+      "title": "Joining a Group Conversation",
+      "description": "Practise joining a conversation, responding naturally, asking follow-up questions, and handling moments when you feel unsure.",
+      "level": "intermediate",
+      "questions": [
+        {
+          "id": "q1",
+          "prompt": "You arrive at a small group discussion. Two people are already talking about weekend plans. What is the best way to join the conversation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "That sounds interesting. Are you talking about plans for this weekend?"
+            },
+            {
+              "id": "b",
+              "text": "Stop talking, I want to say something."
+            },
+            {
+              "id": "c",
+              "text": "I don’t know what you are saying."
+            },
+            {
+              "id": "d",
+              "text": "Why did no one ask me?"
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This response joins the conversation politely. It shows interest and asks a question that helps you understand the topic."
+        },
+        {
+          "id": "q2",
+          "prompt": "Someone says: \"We were thinking of going bowling on Saturday.\" You are interested, but you are not sure about the time. What could you ask?",
+          "options": [
+            {
+              "id": "a",
+              "text": "That sounds fun. What time are you thinking of going?"
+            },
+            {
+              "id": "b",
+              "text": "I need all the information now."
+            },
+            {
+              "id": "c",
+              "text": "Saturday is a day."
+            },
+            {
+              "id": "d",
+              "text": "I don’t understand bowling."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This answer responds positively first, then asks a clear follow-up question. That keeps the conversation moving naturally."
+        },
+        {
+          "id": "q3",
+          "prompt": "Someone asks: \"Do you usually like group activities?\" You feel a bit nervous but want to answer honestly. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sometimes. I enjoy them, but I can feel a bit nervous at first."
+            },
+            {
+              "id": "b",
+              "text": "No. Next question."
+            },
+            {
+              "id": "c",
+              "text": "I am normal."
+            },
+            {
+              "id": "d",
+              "text": "Why are you asking me that?"
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This answer is honest without ending the conversation. It gives the other person something they can understand and respond to."
+        },
+        {
+          "id": "q4",
+          "prompt": "The group starts laughing about something you missed. You want to understand without feeling awkward. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "I think I missed that — what happened?"
+            },
+            {
+              "id": "b",
+              "text": "Why is everyone laughing?"
+            },
+            {
+              "id": "c",
+              "text": "That was not funny."
+            },
+            {
+              "id": "d",
+              "text": "Forget it."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This is a calm way to ask for context. It explains that you missed something instead of blaming the group."
+        },
+        {
+          "id": "q5",
+          "prompt": "Someone asks for your opinion: \"What do you think? Should we invite more people?\" You are unsure. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "I’m not completely sure, but maybe a few more people would be nice."
+            },
+            {
+              "id": "b",
+              "text": "I don’t think thoughts."
+            },
+            {
+              "id": "c",
+              "text": "Do whatever you want."
+            },
+            {
+              "id": "d",
+              "text": "That question is too hard."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This answer shows that it is okay to be unsure. You still contribute an opinion, even if it is not a strong one."
+        },
+        {
+          "id": "q6",
+          "prompt": "You want to say something, but two people are talking at the same time. What is the best way to enter the conversation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Can I add something quickly?"
+            },
+            {
+              "id": "b",
+              "text": "Everyone be quiet."
+            },
+            {
+              "id": "c",
+              "text": "I am speaking now."
+            },
+            {
+              "id": "d",
+              "text": "No one lets me talk."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This is a polite way to take a turn. It signals that you want to speak without interrupting too strongly."
+        },
+        {
+          "id": "q7",
+          "prompt": "Someone mentions a place you have never heard of. You want to keep the conversation going. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "I haven’t heard of that place before. What is it like?"
+            },
+            {
+              "id": "b",
+              "text": "I do not know that, so I cannot talk."
+            },
+            {
+              "id": "c",
+              "text": "That place sounds fake."
+            },
+            {
+              "id": "d",
+              "text": "Why would you go there?"
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This response turns not knowing something into a useful question. It invites the other person to explain more."
+        },
+        {
+          "id": "q8",
+          "prompt": "You need to leave the conversation soon, but you want to do it politely. What could you say?",
+          "options": [
+            {
+              "id": "a",
+              "text": "I need to head off soon, but it was nice talking with you."
+            },
+            {
+              "id": "b",
+              "text": "I am leaving now."
+            },
+            {
+              "id": "c",
+              "text": "This conversation is finished."
+            },
+            {
+              "id": "d",
+              "text": "Bye."
+            }
+          ],
+          "correctOptionId": "a",
+          "explanation": "This response clearly says you need to leave while still ending the conversation warmly."
+        }
+      ]
     }
   ]
 }

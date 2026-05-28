@@ -102,6 +102,42 @@ function formatQuestionCount(count: number): string {
                 </svg>
 
                 <svg
+                  v-else-if="scenario.id === 'joining-a-group-conversation'"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M14.5 4h4a1.5 1.5 0 0 1 1.5 1.5V11a1.5 1.5 0 0 1-1.5 1.5h-1.25L14 15v-2.5h-1.5A1.5 1.5 0 0 1 11 11V7.5"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M4 6.5A1.5 1.5 0 0 1 5.5 5h8A1.5 1.5 0 0 1 15 6.5V12a1.5 1.5 0 0 1-1.5 1.5h-4L6 16v-2.5H5.5A1.5 1.5 0 0 1 4 12Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M7.5 9h4"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M7.5 11.5h2.5"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+
+                <svg
                   v-else
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -249,9 +285,9 @@ function formatQuestionCount(count: number): string {
 
 .scenario-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17.25rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(21rem, 21rem));
   gap: 1.5rem;
-  justify-items: center;
+  justify-content: center;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -260,8 +296,8 @@ function formatQuestionCount(count: number): string {
 .scenario-card {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  width: min(100%, 17.25rem);
-  min-height: 16.4375rem;
+  width: 21rem;
+  height: 16.5rem;
   padding: 1.5625rem 1.5rem 1.5rem;
   color: var(--color-text);
   text-decoration: none;
@@ -271,6 +307,10 @@ function formatQuestionCount(count: number): string {
 
 .scenario-card--ordering-food {
   background: #ffe8cc;
+}
+
+.scenario-card--joining-a-group-conversation {
+  background: #d8f3dc;
 }
 
 .scenario-card:focus-visible {
@@ -292,6 +332,10 @@ function formatQuestionCount(count: number): string {
   color: #7a4300;
 }
 
+.scenario-card--joining-a-group-conversation .scenario-card__icon {
+  color: #14532d;
+}
+
 .scenario-card__icon svg {
   width: 1.5rem;
   height: 1.5rem;
@@ -299,15 +343,16 @@ function formatQuestionCount(count: number): string {
 
 .scenario-card__content {
   display: grid;
-  align-content: end;
+  align-content: start;
   gap: 0.75rem;
-  padding-bottom: 1.5625rem;
+  padding-top: 1rem;
 }
 
 .scenario-card__title {
   font-size: 1.125rem;
   font-weight: var(--font-weight-heading);
   line-height: 1.3;
+  white-space: nowrap;
   color: var(--color-text-strong);
 }
 
@@ -318,7 +363,7 @@ function formatQuestionCount(count: number): string {
 }
 
 .scenario-card__description {
-  max-width: 13.25rem;
+  max-width: 20rem;
 }
 
 .scenario-card__meta {
@@ -356,6 +401,19 @@ function formatQuestionCount(count: number): string {
 @media (max-width: 37.5rem) {
   .practice-main {
     padding-top: 1.5rem;
+  }
+
+  .scenario-list {
+    grid-template-columns: 1fr;
+  }
+
+  .scenario-card {
+    width: min(100%, 21rem);
+    margin-inline: auto;
+  }
+
+  .scenario-card__title {
+    font-size: 1.02rem;
   }
 }
 </style>
