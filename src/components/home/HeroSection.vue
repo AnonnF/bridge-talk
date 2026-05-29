@@ -15,7 +15,7 @@ import IconSpeech from '../ui/IconSpeech.vue'
       </p>
       <BaseButton to="/practice" size="lg" class="hero__cta">
         <IconSpeech />
-        Try Practice
+        Practice now
       </BaseButton>
     </div>
   </section>
