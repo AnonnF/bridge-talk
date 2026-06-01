@@ -8,7 +8,7 @@ import type {
   SubmitAnswer,
   SubmitRequestBody,
 } from '../types/api.js'
-import type { Scenario } from '../types/questionBank.js'
+import type { QuestionOption, Scenario } from '../types/questionBank.js'
 
 function findScenario(scenarioId: string): Scenario | undefined {
   const bank = loadQuestionBank()
@@ -25,7 +25,7 @@ function toScenarioSummary(scenario: Scenario): ScenarioSummary {
   }
 }
 
-function shuffleOptions(options: string[]): string[] {
+function shuffleOptions(options: QuestionOption[]): QuestionOption[] {
   const shuffled = [...options]
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(Math.random() * (index + 1))
@@ -40,7 +40,7 @@ function toQuizQuestions(scenario: Scenario): QuizQuestion[] {
   return scenario.questions.map((question) => ({
     id: question.id,
     prompt: question.prompt,
-    options: shuffleOptions(question.options),
+    options: shuffleOptions(question.options).map((option) => option.text),
   }))
 }
 
@@ -96,8 +96,10 @@ function gradeQuestion(
     return null
   }
 
+  const optionTexts = question.options.map((option) => option.text)
+
   if (selectedOptionText.trim() === '') {
-    const correctOptionText = question.options[0]
+    const correctOptionText = question.options[0].text
     return {
       questionId: question.id,
       correct: false,
@@ -107,12 +109,12 @@ function gradeQuestion(
     }
   }
 
-  const selectedOptionExists = question.options.includes(selectedOptionText)
+  const selectedOptionExists = optionTexts.includes(selectedOptionText)
   if (!selectedOptionExists) {
     throw new Error('UNKNOWN_OPTION_TEXT')
   }
 
-  const correctOptionText = question.options[0]
+  const correctOptionText = question.options[0].text
   return {
     questionId: question.id,
     correct: selectedOptionText === correctOptionText,

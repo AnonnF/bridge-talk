@@ -10,10 +10,54 @@
           "id": "q1",
           "prompt": "The doctor asks: \"What brings you in today?\" You want to explain your headache clearly. What would you say?",
           "options": [
-            "I’ve had a headache for two days, and it hasn’t gone away.",
-            "Headache.",
-            "I don’t know.",
-            "Can you just check me?"
+            {
+              "id": "A",
+              "text": "I’ve had a headache for two days, and it hasn’t gone away.",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It gives the doctor useful details: what the problem is, how long it has lasted, and that it is still happening."
+            },
+            {
+              "id": "B",
+              "text": "Headache.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "I don’t know.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "It is okay not to know everything. You could add one small detail or ask a short question so the other person can help you."
+            },
+            {
+              "id": "D",
+              "text": "Can you just check me?",
+              "scores": {
+                "clarity": 2,
+                "empathy": 1,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 2
+              },
+              "feedback": "This is a bit vague or direct. Naming what you need (for example, a check-up or more time) can sound clearer and more respectful."
+            }
           ],
           "explanation": "This answer gives the doctor useful details: what the problem is, how long it has lasted, and that it is still happening."
         },
@@ -21,10 +65,54 @@
           "id": "q2",
           "prompt": "The doctor asks: \"Can you describe the pain?\" What is the most helpful answer?",
           "options": [
-            "It feels like pressure around my forehead.",
-            "It hurts.",
-            "I have pain.",
-            "I’m sick."
+            {
+              "id": "A",
+              "text": "It feels like pressure around my forehead.",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. “It hurts” is understandable, but this answer gives more detail about what the pain feels like and where it is."
+            },
+            {
+              "id": "B",
+              "text": "It hurts.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "I have pain.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "D",
+              "text": "I’m sick.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            }
           ],
           "explanation": "“It hurts” is understandable, but this answer gives more detail about what the pain feels like and where it is."
         },
@@ -32,10 +120,54 @@
           "id": "q3",
           "prompt": "The doctor uses a word you do not understand. What could you say?",
           "options": [
-            "Could you explain what that means?",
-            "I understand.",
-            "Never mind.",
-            "That is too confusing."
+            {
+              "id": "A",
+              "text": "Could you explain what that means?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It is okay to ask for clarification. This helps you understand what the doctor is saying instead of pretending you know."
+            },
+            {
+              "id": "B",
+              "text": "I understand.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 1,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "Pretending you understand can hide confusion. A short question is often better than saying you understand."
+            },
+            {
+              "id": "C",
+              "text": "Never mind.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 1,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "Ending the topic quickly can feel dismissive. A short clarifying question or request is often more helpful."
+            },
+            {
+              "id": "D",
+              "text": "That is too confusing.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 1,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            }
           ],
           "explanation": "Good choice. It is okay to ask for clarification. This helps you understand what the doctor is saying instead of pretending you know."
         },
@@ -43,10 +175,54 @@
           "id": "q4",
           "prompt": "You feel nervous and need a moment before answering the doctor. What could you say?",
           "options": [
-            "Give me a second to think.",
-            "I can’t talk.",
-            "You answer for me.",
-            "Never mind."
+            {
+              "id": "A",
+              "text": "Give me a second to think.",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. Taking a moment is allowed. This phrase is calm, clear, and helps you stay in the conversation."
+            },
+            {
+              "id": "B",
+              "text": "I can’t talk.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "You answer for me.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 2,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            },
+            {
+              "id": "D",
+              "text": "Never mind.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 2,
+                "safety": 2
+              },
+              "feedback": "Ending the topic quickly can feel dismissive. A short clarifying question or request is often more helpful."
+            }
           ],
           "explanation": "Good choice. Taking a moment is allowed. This phrase is calm, clear, and helps you stay in the conversation."
         },
@@ -54,10 +230,54 @@
           "id": "q5",
           "prompt": "Doctor: \"How long have you had the headache?\" You: \"...\"",
           "options": [
-            "For about two days.",
-            "Yes.",
-            "I think.",
-            "Headache bad."
+            {
+              "id": "A",
+              "text": "For about two days.",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It directly answers the doctor’s question and gives a clear time period."
+            },
+            {
+              "id": "B",
+              "text": "Yes.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "I think.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "D",
+              "text": "Headache bad.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            }
           ],
           "explanation": "Good choice. This directly answers the doctor’s question and gives a clear time period."
         },
@@ -65,10 +285,54 @@
           "id": "q6",
           "prompt": "You say: \"I’ve had a headache for two days.\" The doctor asks: \"Have you taken anything for it?\" What could you say next?",
           "options": [
-            "Yes, I took paracetamol yesterday, but it only helped a little.",
-            "I have headache.",
-            "No headache.",
-            "I don’t want to answer."
+            {
+              "id": "A",
+              "text": "Yes, I took paracetamol yesterday, but it only helped a little.",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It explains what you took, when you took it, and whether it helped."
+            },
+            {
+              "id": "B",
+              "text": "I have headache.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "No headache.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "D",
+              "text": "I don’t want to answer.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            }
           ],
           "explanation": "Good choice. This answer explains what you took, when you took it, and whether it helped."
         },
@@ -76,10 +340,54 @@
           "id": "q7",
           "prompt": "You want to ask the doctor to repeat something. Which option sounds polite and clear?",
           "options": [
-            "Sorry, could you repeat that?",
-            "What?",
-            "You’re confusing me.",
-            "I don’t care."
+            {
+              "id": "A",
+              "text": "Sorry, could you repeat that?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 4,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It is polite and clear. It helps you ask for repetition without sounding rude."
+            },
+            {
+              "id": "B",
+              "text": "What?",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "You’re confusing me.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            },
+            {
+              "id": "D",
+              "text": "I don’t care.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            }
           ],
           "explanation": "Good choice. This is polite and clear. It helps you ask for repetition without sounding rude."
         },
@@ -87,10 +395,54 @@
           "id": "q8",
           "prompt": "At the end of the appointment, you are not sure what to do next. What could you ask?",
           "options": [
-            "Could you explain what I should do next?",
-            "Okay, bye.",
-            "I don’t know anything.",
-            "You decide."
+            {
+              "id": "A",
+              "text": "Could you explain what I should do next?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It helps you confirm the next steps before leaving the appointment."
+            },
+            {
+              "id": "B",
+              "text": "Okay, bye.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "I don’t know anything.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "It is okay not to know everything. You could add one small detail or ask a short question so the other person can help you."
+            },
+            {
+              "id": "D",
+              "text": "You decide.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 1,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            }
           ],
           "explanation": "Good choice. This helps you confirm the next steps before leaving the appointment."
         }
@@ -106,10 +458,54 @@
           "id": "q1",
           "prompt": "The cashier asks: \"What would you like?\" You want to order a chicken sandwich. What could you say?",
           "options": [
-            "Could I have a chicken sandwich, please?",
-            "Chicken.",
-            "Give food.",
-            "I don’t know."
+            {
+              "id": "A",
+              "text": "Could I have a chicken sandwich, please?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It clearly says what you want and uses polite language."
+            },
+            {
+              "id": "B",
+              "text": "Chicken.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "Give food.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 2,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            },
+            {
+              "id": "D",
+              "text": "I don’t know.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "It is okay not to know everything. You could add one small detail or ask a short question so the other person can help you."
+            }
           ],
           "explanation": "This answer clearly says what you want and uses polite language."
         },
@@ -117,10 +513,54 @@
           "id": "q2",
           "prompt": "The cashier asks: \"Would you like anything to drink?\" You want water. What could you say?",
           "options": [
-            "Yes, could I have a water, please?",
-            "Drink.",
-            "I want things.",
-            "No, water."
+            {
+              "id": "A",
+              "text": "Yes, could I have a water, please?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It clearly answers the question and politely asks for the drink you want."
+            },
+            {
+              "id": "B",
+              "text": "Drink.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "I want things.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "D",
+              "text": "No, water.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            }
           ],
           "explanation": "This clearly answers the question and politely asks for the drink you want."
         },
@@ -128,10 +568,54 @@
           "id": "q3",
           "prompt": "You do not understand what the cashier said. What could you say?",
           "options": [
-            "Sorry, could you say that again?",
-            "Yes.",
-            "Never mind.",
-            "You talk too fast."
+            {
+              "id": "A",
+              "text": "Sorry, could you say that again?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 4,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It is a polite way to ask for clarification. It helps you stay in the conversation without being rude."
+            },
+            {
+              "id": "B",
+              "text": "Yes.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "Never mind.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 1,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "Ending the topic quickly can feel dismissive. A short clarifying question or request is often more helpful."
+            },
+            {
+              "id": "D",
+              "text": "You talk too fast.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            }
           ],
           "explanation": "This is a polite way to ask for clarification. It helps you stay in the conversation without being rude."
         },
@@ -139,10 +623,54 @@
           "id": "q4",
           "prompt": "You need more time to choose from the menu. What could you say?",
           "options": [
-            "Could I have a moment to decide, please?",
-            "Wait.",
-            "I can’t do this.",
-            "You choose."
+            {
+              "id": "A",
+              "text": "Could I have a moment to decide, please?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It gives you time to think while still sounding calm and polite."
+            },
+            {
+              "id": "B",
+              "text": "Wait.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "I can’t do this.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            },
+            {
+              "id": "D",
+              "text": "You choose.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            }
           ],
           "explanation": "This gives you time to think while still sounding calm and polite."
         },
@@ -150,10 +678,54 @@
           "id": "q5",
           "prompt": "You want to ask if the food is spicy. Which question is clearest?",
           "options": [
-            "Is this spicy?",
-            "This spicy?",
-            "Spicy is it food?",
-            "I spicy?"
+            {
+              "id": "A",
+              "text": "Is this spicy?",
+              "scores": {
+                "clarity": 4,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It is a short, clear question that helps you check before ordering."
+            },
+            {
+              "id": "B",
+              "text": "This spicy?",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "Spicy is it food?",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "You are asking something, which is good. Softer wording or a little context can sound more natural in conversation."
+            },
+            {
+              "id": "D",
+              "text": "I spicy?",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            }
           ],
           "explanation": "This is a short, clear question that helps you check before ordering."
         },
@@ -161,10 +733,54 @@
           "id": "q6",
           "prompt": "The cashier asks: \"Eat in or takeaway?\" You want to take the food with you. What could you say?",
           "options": [
-            "Takeaway, please.",
-            "Go away.",
-            "I leave.",
-            "Food outside."
+            {
+              "id": "A",
+              "text": "Takeaway, please.",
+              "scores": {
+                "clarity": 4,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It directly answers the cashier’s question in a natural way."
+            },
+            {
+              "id": "B",
+              "text": "Go away.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 2,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            },
+            {
+              "id": "C",
+              "text": "I leave.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "D",
+              "text": "Food outside.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            }
           ],
           "explanation": "This directly answers the cashier’s question in a natural way."
         },
@@ -172,10 +788,54 @@
           "id": "q7",
           "prompt": "You ordered the wrong drink by accident. What could you say?",
           "options": [
-            "Sorry, could I change that to orange juice?",
-            "Wrong. Change it.",
-            "No, bad.",
-            "I don’t want talking."
+            {
+              "id": "A",
+              "text": "Sorry, could I change that to orange juice?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 4,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It politely explains that you want to change your order and says what you want instead."
+            },
+            {
+              "id": "B",
+              "text": "Wrong. Change it.",
+              "scores": {
+                "clarity": 3,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 3,
+                "safety": 4
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            },
+            {
+              "id": "C",
+              "text": "No, bad.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "D",
+              "text": "I don’t want talking.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            }
           ],
           "explanation": "This politely explains that you want to change your order and says what you want instead."
         },
@@ -183,10 +843,54 @@
           "id": "q8",
           "prompt": "The cashier says: \"That will be £6.50.\" You want to check if you can pay by card. What could you ask?",
           "options": [
-            "Can I pay by card?",
-            "Card?",
-            "I pay card now yes?",
-            "Money what?"
+            {
+              "id": "A",
+              "text": "Can I pay by card?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It is a clear and useful question when you are checking how to pay."
+            },
+            {
+              "id": "B",
+              "text": "Card?",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 2,
+                "safety": 4
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "C",
+              "text": "I pay card now yes?",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "You are asking something, which is good. Softer wording or a little context can sound more natural in conversation."
+            },
+            {
+              "id": "D",
+              "text": "Money what?",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            }
           ],
           "explanation": "This is a clear and useful question when you are checking how to pay."
         }
@@ -202,10 +906,54 @@
           "id": "q1",
           "prompt": "You arrive at a small group discussion. Two people are already talking about weekend plans. What is the best way to join the conversation?",
           "options": [
-            "That sounds interesting. Are you talking about plans for this weekend?",
-            "Stop talking, I want to say something.",
-            "I don’t know what you are saying.",
-            "Why did no one ask me?"
+            {
+              "id": "A",
+              "text": "That sounds interesting. Are you talking about plans for this weekend?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 4,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It response joins the conversation politely. It shows interest and asks a question that helps you understand the topic."
+            },
+            {
+              "id": "B",
+              "text": "Stop talking, I want to say something.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 2,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            },
+            {
+              "id": "C",
+              "text": "I don’t know what you are saying.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            },
+            {
+              "id": "D",
+              "text": "Why did no one ask me?",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "You are asking something, which is good. Softer wording or a little context can sound more natural in conversation."
+            }
           ],
           "explanation": "This response joins the conversation politely. It shows interest and asks a question that helps you understand the topic."
         },
@@ -213,10 +961,54 @@
           "id": "q2",
           "prompt": "Someone says: \"We were thinking of going bowling on Saturday.\" You are interested, but you are not sure about the time. What could you ask?",
           "options": [
-            "That sounds fun. What time are you thinking of going?",
-            "I need all the information now.",
-            "Saturday is a day.",
-            "I don’t understand bowling."
+            {
+              "id": "A",
+              "text": "That sounds fun. What time are you thinking of going?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 4,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It responds positively first, then asks a clear follow-up question. That keeps the conversation moving naturally."
+            },
+            {
+              "id": "B",
+              "text": "I need all the information now.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 2,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            },
+            {
+              "id": "C",
+              "text": "Saturday is a day.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            },
+            {
+              "id": "D",
+              "text": "I don’t understand bowling.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            }
           ],
           "explanation": "This answer responds positively first, then asks a clear follow-up question. That keeps the conversation moving naturally."
         },
@@ -224,10 +1016,54 @@
           "id": "q3",
           "prompt": "Someone asks: \"Do you usually like group activities?\" You feel a bit nervous but want to answer honestly. What could you say?",
           "options": [
-            "Sometimes. I enjoy them, but I can feel a bit nervous at first.",
-            "No. Next question.",
-            "I am normal.",
-            "Why are you asking me that?"
+            {
+              "id": "A",
+              "text": "Sometimes. I enjoy them, but I can feel a bit nervous at first.",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It is honest without ending the conversation. It gives the other person something they can understand and respond to."
+            },
+            {
+              "id": "B",
+              "text": "No. Next question.",
+              "scores": {
+                "clarity": 3,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 3,
+                "safety": 4
+              },
+              "feedback": "Ending the topic quickly can feel dismissive. A short clarifying question or request is often more helpful."
+            },
+            {
+              "id": "C",
+              "text": "I am normal.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            },
+            {
+              "id": "D",
+              "text": "Why are you asking me that?",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "You are asking something, which is good. Softer wording or a little context can sound more natural in conversation."
+            }
           ],
           "explanation": "This answer is honest without ending the conversation. It gives the other person something they can understand and respond to."
         },
@@ -235,10 +1071,54 @@
           "id": "q4",
           "prompt": "The group starts laughing about something you missed. You want to understand without feeling awkward. What could you say?",
           "options": [
-            "I think I missed that — what happened?",
-            "Why is everyone laughing?",
-            "That was not funny.",
-            "Forget it."
+            {
+              "id": "A",
+              "text": "I think I missed that — what happened?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It is a calm way to ask for context. It explains that you missed something instead of blaming the group."
+            },
+            {
+              "id": "B",
+              "text": "Why is everyone laughing?",
+              "scores": {
+                "clarity": 3,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 3,
+                "safety": 4
+              },
+              "feedback": "You are asking something, which is good. Softer wording or a little context can sound more natural in conversation."
+            },
+            {
+              "id": "C",
+              "text": "That was not funny.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 2,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            },
+            {
+              "id": "D",
+              "text": "Forget it.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 2,
+                "safety": 2
+              },
+              "feedback": "Ending the topic quickly can feel dismissive. A short clarifying question or request is often more helpful."
+            }
           ],
           "explanation": "This is a calm way to ask for context. It explains that you missed something instead of blaming the group."
         },
@@ -246,10 +1126,54 @@
           "id": "q5",
           "prompt": "Someone asks for your opinion: \"What do you think? Should we invite more people?\" You are unsure. What could you say?",
           "options": [
-            "I’m not completely sure, but maybe a few more people would be nice.",
-            "I don’t think thoughts.",
-            "Do whatever you want.",
-            "That question is too hard."
+            {
+              "id": "A",
+              "text": "I’m not completely sure, but maybe a few more people would be nice.",
+              "scores": {
+                "clarity": 5,
+                "empathy": 4,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It shows that it is okay to be unsure. You still contribute an opinion, even if it is not a strong one."
+            },
+            {
+              "id": "B",
+              "text": "I don’t think thoughts.",
+              "scores": {
+                "clarity": 3,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 3,
+                "safety": 4
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            },
+            {
+              "id": "C",
+              "text": "Do whatever you want.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 1,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "Ending the topic quickly can feel dismissive. A short clarifying question or request is often more helpful."
+            },
+            {
+              "id": "D",
+              "text": "That question is too hard.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            }
           ],
           "explanation": "This answer shows that it is okay to be unsure. You still contribute an opinion, even if it is not a strong one."
         },
@@ -257,10 +1181,54 @@
           "id": "q6",
           "prompt": "You want to say something, but two people are talking at the same time. What is the best way to enter the conversation?",
           "options": [
-            "Can I add something quickly?",
-            "Everyone be quiet.",
-            "I am speaking now.",
-            "No one lets me talk."
+            {
+              "id": "A",
+              "text": "Can I add something quickly?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It is a polite way to take a turn. It signals that you want to speak without interrupting too strongly."
+            },
+            {
+              "id": "B",
+              "text": "Everyone be quiet.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 2,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            },
+            {
+              "id": "C",
+              "text": "I am speaking now.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 2,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            },
+            {
+              "id": "D",
+              "text": "No one lets me talk.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 1,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            }
           ],
           "explanation": "This is a polite way to take a turn. It signals that you want to speak without interrupting too strongly."
         },
@@ -268,10 +1236,54 @@
           "id": "q7",
           "prompt": "Someone mentions a place you have never heard of. You want to keep the conversation going. What could you say?",
           "options": [
-            "I haven’t heard of that place before. What is it like?",
-            "I do not know that, so I cannot talk.",
-            "That place sounds fake.",
-            "Why would you go there?"
+            {
+              "id": "A",
+              "text": "I haven’t heard of that place before. What is it like?",
+              "scores": {
+                "clarity": 5,
+                "empathy": 3,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It response turns not knowing something into a useful question. It invites the other person to explain more."
+            },
+            {
+              "id": "B",
+              "text": "I do not know that, so I cannot talk.",
+              "scores": {
+                "clarity": 3,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 3,
+                "safety": 4
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            },
+            {
+              "id": "C",
+              "text": "That place sounds fake.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 2,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            },
+            {
+              "id": "D",
+              "text": "Why would you go there?",
+              "scores": {
+                "clarity": 1,
+                "empathy": 0,
+                "appropriateness": 0,
+                "confidence": 1,
+                "safety": 0
+              },
+              "feedback": "This may come across as abrupt or demanding. A calmer, more specific phrase usually keeps the conversation going."
+            }
           ],
           "explanation": "This response turns not knowing something into a useful question. It invites the other person to explain more."
         },
@@ -279,10 +1291,54 @@
           "id": "q8",
           "prompt": "You need to leave the conversation soon, but you want to do it politely. What could you say?",
           "options": [
-            "I need to head off soon, but it was nice talking with you.",
-            "I am leaving now.",
-            "This conversation is finished.",
-            "Bye."
+            {
+              "id": "A",
+              "text": "I need to head off soon, but it was nice talking with you.",
+              "scores": {
+                "clarity": 5,
+                "empathy": 4,
+                "appropriateness": 5,
+                "confidence": 4,
+                "safety": 5
+              },
+              "feedback": "This is a strong response. It response clearly says you need to leave while still ending the conversation warmly."
+            },
+            {
+              "id": "B",
+              "text": "I am leaving now.",
+              "scores": {
+                "clarity": 3,
+                "empathy": 2,
+                "appropriateness": 3,
+                "confidence": 3,
+                "safety": 4
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            },
+            {
+              "id": "C",
+              "text": "This conversation is finished.",
+              "scores": {
+                "clarity": 2,
+                "empathy": 2,
+                "appropriateness": 2,
+                "confidence": 2,
+                "safety": 3
+              },
+              "feedback": "This is partly understandable. With a little more detail or warmer phrasing, it could fit the situation better."
+            },
+            {
+              "id": "D",
+              "text": "Bye.",
+              "scores": {
+                "clarity": 1,
+                "empathy": 1,
+                "appropriateness": 1,
+                "confidence": 1,
+                "safety": 2
+              },
+              "feedback": "This is understandable, but adding a bit more detail (what, when, or how) usually makes your message clearer."
+            }
           ],
           "explanation": "This response clearly says you need to leave while still ending the conversation warmly."
         }
