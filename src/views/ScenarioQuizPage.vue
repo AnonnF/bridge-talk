@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import CommunicationProfile from '../components/results/CommunicationProfile.vue'
 import BaseButton from '../components/ui/BaseButton.vue'
 import { useScenarioAnswers } from '../composables/useScenarioAnswers'
 import {
@@ -9,12 +10,10 @@ import {
   getScenarios,
   submitAnswer,
 } from '../services/questionBankApi'
-import {
-  DIMENSION_LABELS,
-  type DimensionKey,
-  type QuizQuestion,
-  type ScenarioResultResponse,
-  type SubmitAnswerResponse,
+import type {
+  QuizQuestion,
+  ScenarioResultResponse,
+  SubmitAnswerResponse,
 } from '../types/questionBank'
 import { getOrCreateUserId } from '../utils/anonymousUserId'
 
@@ -25,7 +24,7 @@ const {
   answers: storedAnswers,
   clearAnswers,
   upsertAnswer,
-} = useScenarioAnswers(userId, scenarioId.value)
+} = useScenarioAnswers(userId, scenarioId)
 
 const scenarioTitle = ref('')
 const questions = ref<QuizQuestion[]>([])
@@ -37,8 +36,6 @@ const selectedOptionIdByQuestionId = ref<Record<string, string>>({})
 const feedbackByQuestionId = ref<Record<string, SubmitAnswerResponse>>({})
 const submitting = ref(false)
 const results = ref<ScenarioResultResponse | null>(null)
-
-const dimensionKeys = Object.keys(DIMENSION_LABELS) as DimensionKey[]
 
 const currentQuestion = computed(
   () => questions.value[currentIndex.value] ?? null,
@@ -137,6 +134,12 @@ function goToPrevious() {
 }
 
 async function submitCurrentQuiz() {
+  if (storedAnswers.value.length === 0) {
+    error.value =
+      'Answer at least one question to see your communication profile.'
+    return
+  }
+
   submitting.value = true
   error.value = null
 
@@ -282,27 +285,7 @@ async function handleCheckAnswer() {
       >
         <h1 id="quiz-results-title">Communication Profile</h1>
 
-        <ul class="quiz-results__dimensions">
-          <li v-for="key in dimensionKeys" :key="key">
-            {{ DIMENSION_LABELS[key] }}: {{ results.averages[key] }} / 5
-          </li>
-        </ul>
-
-        <p class="quiz-results__highlights">
-          Strongest: {{ results.strongestLabel }} · Weakest:
-          {{ results.weakestLabel }}
-        </p>
-
-        <div class="quiz-results__report">
-          <h2>Summary</h2>
-          <p>{{ results.summary }}</p>
-          <h2>Suggestions</h2>
-          <ul>
-            <li v-for="(suggestion, index) in results.suggestions" :key="index">
-              {{ suggestion }}
-            </li>
-          </ul>
-        </div>
+        <CommunicationProfile :result="results" />
 
         <BaseButton to="/practice" size="sm">Back to practice</BaseButton>
       </section>
@@ -787,61 +770,6 @@ async function handleCheckAnswer() {
   font-size: clamp(1.75rem, 4vw, 2rem);
   font-weight: var(--font-weight-heading);
   color: var(--color-text-strong);
-}
-
-.quiz-results__dimensions {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.5rem;
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--color-text-strong);
-}
-
-.quiz-results__highlights {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  color: var(--color-text);
-}
-
-.quiz-results__report {
-  padding: 1rem 1.125rem;
-  border-radius: 1rem;
-  background: rgb(255 255 255 / 0.7);
-  font-family: var(--font-sans);
-}
-
-.quiz-results__report h2 {
-  margin: 0 0 0.5rem;
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.4;
-  color: var(--color-text);
-  text-transform: uppercase;
-}
-
-.quiz-results__report h2:not(:first-child) {
-  margin-top: 1rem;
-}
-
-.quiz-results__report p {
-  margin: 0;
-  font-size: 0.9375rem;
-  line-height: 1.55;
-  color: var(--color-text);
-}
-
-.quiz-results__report ul {
-  margin: 0;
-  padding-left: 1.125rem;
-  font-size: 0.9375rem;
-  line-height: 1.55;
-  color: var(--color-text);
 }
 
 .visually-hidden {
