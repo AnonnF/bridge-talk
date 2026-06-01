@@ -1,10 +1,11 @@
 import type {
-  CheckAnswerRequest,
-  QuestionResult,
+  DimensionAveragesResponse,
   QuizQuestionsResponse,
+  ScenarioResultResponse,
   ScenarioSummary,
-  SubmitAnswer,
-  SubmitResponse,
+  StoredAnswer,
+  SubmitAnswerRequest,
+  SubmitAnswerResponse,
 } from '../types/questionBank'
 
 /** Same-origin on Vercel; localhost API in dev unless VITE_API_BASE_URL is set. */
@@ -39,33 +40,46 @@ export function getScenarioQuestions(
   )
 }
 
-export function submitQuiz(
+export function submitAnswer(
   scenarioId: string,
-  answers: SubmitAnswer[],
-): Promise<SubmitResponse> {
-  return apiFetch<SubmitResponse>(
-    `/api/scenarios/${encodeURIComponent(scenarioId)}/submit`,
+  body: SubmitAnswerRequest,
+): Promise<SubmitAnswerResponse> {
+  return apiFetch<SubmitAnswerResponse>(
+    `/api/scenarios/${encodeURIComponent(scenarioId)}/answers`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers }),
+      body: JSON.stringify(body),
     },
   )
 }
 
-export function checkQuestionAnswer(
+export function getUserDimensionAverages(
   scenarioId: string,
-  questionId: string,
-  answer: CheckAnswerRequest,
-): Promise<QuestionResult> {
-  return apiFetch<QuestionResult>(
-    `/api/scenarios/${encodeURIComponent(scenarioId)}/questions/${encodeURIComponent(
-      questionId,
-    )}/check`,
+  userId: string,
+  answers: StoredAnswer[],
+): Promise<DimensionAveragesResponse> {
+  return apiFetch<DimensionAveragesResponse>(
+    `/api/scenarios/${encodeURIComponent(scenarioId)}/dimension-averages`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(answer),
+      body: JSON.stringify({ userId, answers }),
+    },
+  )
+}
+
+export function getScenarioResult(
+  scenarioId: string,
+  userId: string,
+  answers: StoredAnswer[],
+): Promise<ScenarioResultResponse> {
+  return apiFetch<ScenarioResultResponse>(
+    `/api/scenarios/${encodeURIComponent(scenarioId)}/result`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, answers }),
     },
   )
 }

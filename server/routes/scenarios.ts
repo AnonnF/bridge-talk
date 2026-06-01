@@ -1,14 +1,28 @@
 import { Router } from 'express'
 import { loadQuestionBank } from '../data/loadQuestionBank.js'
+import {
+  averageDimensionScores,
+  buildScenarioResult,
+} from '../services/dimensions.js'
+import {
+  findOption,
+  findQuestion,
+  isOptionId,
+} from '../services/questionLookup.js'
+import type { StoredAnswer } from '../types/answers.js'
 import type {
-  CheckAnswerRequestBody,
-  QuestionResult,
+  DimensionAveragesRequestBody,
   QuizQuestion,
+  ScenarioResultRequestBody,
   ScenarioSummary,
-  SubmitAnswer,
-  SubmitRequestBody,
+  SubmitAnswerRequestBody,
 } from '../types/api.js'
-import type { QuestionOption, Scenario } from '../types/questionBank.js'
+import {
+  DIMENSION_KEYS,
+  type DimensionScores,
+  type QuestionOption,
+  type Scenario,
+} from '../types/questionBank.js'
 
 function findScenario(scenarioId: string): Scenario | undefined {
   const bank = loadQuestionBank()
@@ -40,117 +54,188 @@ function toQuizQuestions(scenario: Scenario): QuizQuestion[] {
   return scenario.questions.map((question) => ({
     id: question.id,
     prompt: question.prompt,
-    options: shuffleOptions(question.options).map((option) => option.text),
+    options: shuffleOptions(question.options).map((option) => ({
+      id: option.id,
+      text: option.text,
+    })),
   }))
 }
 
-function isSubmitAnswer(value: unknown): value is SubmitAnswer {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
-  const record = value as Record<string, unknown>
-  return (
-    typeof record.questionId === 'string' &&
-    record.questionId.trim() !== '' &&
-    typeof record.selectedOptionText === 'string'
-  )
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function parseSubmitBody(body: unknown): SubmitAnswer[] | null {
-  if (typeof body !== 'object' || body === null) {
+function parseDimensionScores(raw: unknown): DimensionScores | null {
+  if (!isRecord(raw)) {
     return null
   }
-  const answers = (body as SubmitRequestBody).answers
-  if (!Array.isArray(answers) || answers.length === 0) {
-    return null
+
+  const scores = {} as DimensionScores
+  for (const key of DIMENSION_KEYS) {
+    const value = raw[key]
+    if (typeof value !== 'number' || !Number.isInteger(value)) {
+      return null
+    }
+    if (value < 0 || value > 5) {
+      return null
+    }
+    scores[key] = value
   }
-  if (!answers.every(isSubmitAnswer)) {
-    return null
-  }
-  return answers
+
+  return scores
 }
 
-function parseCheckAnswerBody(body: unknown): string | null {
-  if (typeof body !== 'object' || body === null) {
+function parseStoredAnswer(
+  raw: unknown,
+  scenarioId: string,
+): StoredAnswer | null {
+  if (!isRecord(raw)) {
     return null
   }
-  const selectedOptionText = (body as CheckAnswerRequestBody).selectedOptionText
+
+  const userId = raw.userId
+  const questionId = raw.questionId
+  const selectedOptionId = raw.selectedOptionId
+  const selectedOptionText = raw.selectedOptionText
+  const timestamp = raw.timestamp
+
   if (
+    typeof userId !== 'string' ||
+    userId.trim() === '' ||
+    typeof questionId !== 'string' ||
+    questionId.trim() === '' ||
+    typeof selectedOptionId !== 'string' ||
+    !isOptionId(selectedOptionId) ||
     typeof selectedOptionText !== 'string' ||
-    selectedOptionText.trim() === ''
+    selectedOptionText.trim() === '' ||
+    typeof timestamp !== 'string' ||
+    timestamp.trim() === ''
   ) {
     return null
   }
-  return selectedOptionText
-}
 
-function gradeQuestion(
-  scenario: Scenario,
-  questionId: string,
-  selectedOptionText: string,
-): QuestionResult | null {
-  const question = scenario.questions.find(
-    (candidate) => candidate.id === questionId,
-  )
-  if (!question) {
+  const scores = parseDimensionScores(raw.scores)
+  if (!scores) {
     return null
   }
 
-  const optionTexts = question.options.map((option) => option.text)
-
-  if (selectedOptionText.trim() === '') {
-    const correctOptionText = question.options[0].text
-    return {
-      questionId: question.id,
-      correct: false,
-      selectedOptionText: '',
-      correctOptionText,
-      explanation: question.explanation,
-    }
+  if (raw.scenarioId !== undefined && raw.scenarioId !== scenarioId) {
+    return null
   }
 
-  const selectedOptionExists = optionTexts.includes(selectedOptionText)
-  if (!selectedOptionExists) {
-    throw new Error('UNKNOWN_OPTION_TEXT')
-  }
-
-  const correctOptionText = question.options[0].text
   return {
-    questionId: question.id,
-    correct: selectedOptionText === correctOptionText,
-    selectedOptionText,
-    correctOptionText,
-    explanation: question.explanation,
+    userId: userId.trim(),
+    scenarioId,
+    questionId: questionId.trim(),
+    selectedOptionId,
+    selectedOptionText: selectedOptionText.trim(),
+    scores,
+    timestamp: timestamp.trim(),
   }
 }
 
-function gradeSubmission(
-  scenario: Scenario,
-  answers: SubmitAnswer[],
-): QuestionResult[] {
-  const answersByQuestionId = new Map<string, string>()
+function parseStoredAnswersBody(
+  body: unknown,
+  scenarioId: string,
+): { userId: string; answers: StoredAnswer[] } | null {
+  if (!isRecord(body)) {
+    return null
+  }
+
+  const userId = body.userId
+  const answersRaw = body.answers
+
+  if (typeof userId !== 'string' || userId.trim() === '') {
+    return null
+  }
+
+  if (!Array.isArray(answersRaw) || answersRaw.length === 0) {
+    return null
+  }
+
+  const answers: StoredAnswer[] = []
+  for (const raw of answersRaw) {
+    const parsed = parseStoredAnswer(raw, scenarioId)
+    if (!parsed) {
+      return null
+    }
+    answers.push(parsed)
+  }
+
+  const questionIds = new Set<string>()
   for (const answer of answers) {
-    if (answersByQuestionId.has(answer.questionId)) {
-      throw new Error('DUPLICATE_QUESTION_ID')
+    if (questionIds.has(answer.questionId)) {
+      return null
     }
-    answersByQuestionId.set(answer.questionId, answer.selectedOptionText)
+    questionIds.add(answer.questionId)
   }
 
+  return { userId: userId.trim(), answers }
+}
+
+function validateAnswersForScenario(
+  scenario: Scenario,
+  answers: StoredAnswer[],
+): boolean {
   const questionIds = new Set(scenario.questions.map((question) => question.id))
-  for (const questionId of answersByQuestionId.keys()) {
-    if (!questionIds.has(questionId)) {
-      throw new Error('UNKNOWN_QUESTION_ID')
+
+  for (const answer of answers) {
+    if (answer.scenarioId !== scenario.id) {
+      return false
+    }
+    if (!questionIds.has(answer.questionId)) {
+      return false
+    }
+
+    const question = findQuestion(scenario, answer.questionId)
+    if (!question) {
+      return false
+    }
+
+    const option = findOption(question, answer.selectedOptionId)
+    if (!option) {
+      return false
+    }
+
+    if (option.text !== answer.selectedOptionText) {
+      return false
+    }
+
+    for (const key of DIMENSION_KEYS) {
+      if (option.scores[key] !== answer.scores[key]) {
+        return false
+      }
     }
   }
 
-  return scenario.questions.map((question) => {
-    const selectedOptionText = answersByQuestionId.get(question.id) ?? ''
-    const result = gradeQuestion(scenario, question.id, selectedOptionText)
-    if (!result) {
-      throw new Error('UNKNOWN_QUESTION_ID')
-    }
-    return result
-  })
+  return true
+}
+
+function parseSubmitAnswerBody(body: unknown): SubmitAnswerRequestBody | null {
+  if (!isRecord(body)) {
+    return null
+  }
+
+  const userId = body.userId
+  const questionId = body.questionId
+  const selectedOptionId = body.selectedOptionId
+
+  if (
+    typeof userId !== 'string' ||
+    userId.trim() === '' ||
+    typeof questionId !== 'string' ||
+    questionId.trim() === '' ||
+    typeof selectedOptionId !== 'string' ||
+    !isOptionId(selectedOptionId)
+  ) {
+    return null
+  }
+
+  return {
+    userId: userId.trim(),
+    questionId: questionId.trim(),
+    selectedOptionId,
+  }
 }
 
 export function createScenariosRouter() {
@@ -170,87 +255,104 @@ export function createScenariosRouter() {
     res.json({ questions: toQuizQuestions(scenario) })
   })
 
-  router.post(
-    '/scenarios/:scenarioId/questions/:questionId/check',
-    (req, res) => {
-      const scenario = findScenario(req.params.scenarioId)
-      if (!scenario) {
-        res.status(404).json({ error: 'Scenario not found' })
-        return
-      }
-
-      const selectedOptionText = parseCheckAnswerBody(req.body)
-      if (!selectedOptionText) {
-        res.status(400).json({ error: 'Invalid check body' })
-        return
-      }
-
-      let result: QuestionResult | null
-      try {
-        result = gradeQuestion(
-          scenario,
-          req.params.questionId,
-          selectedOptionText,
-        )
-      } catch (error) {
-        if (error instanceof Error && error.message === 'UNKNOWN_OPTION_TEXT') {
-          res.status(400).json({ error: 'Invalid selected option' })
-          return
-        }
-        throw error
-      }
-
-      if (!result) {
-        res.status(404).json({ error: 'Question not found' })
-        return
-      }
-
-      res.json(result)
-    },
-  )
-
-  router.post('/scenarios/:scenarioId/submit', (req, res) => {
+  router.post('/scenarios/:scenarioId/answers', (req, res) => {
     const scenario = findScenario(req.params.scenarioId)
     if (!scenario) {
       res.status(404).json({ error: 'Scenario not found' })
       return
     }
 
-    const answers = parseSubmitBody(req.body)
-    if (!answers) {
-      res.status(400).json({ error: 'Invalid submit body' })
+    const body = parseSubmitAnswerBody(req.body)
+    if (!body) {
+      res.status(400).json({ error: 'Invalid submit answer body' })
       return
     }
 
-    if (answers.length !== scenario.questions.length) {
-      res.status(400).json({
-        error: 'Submit one answer per question',
-      })
+    const question = findQuestion(scenario, body.questionId)
+    if (!question) {
+      res.status(404).json({ error: 'Question not found' })
       return
     }
 
-    let results: QuestionResult[]
+    const option = findOption(question, body.selectedOptionId)
+    if (!option) {
+      res.status(400).json({ error: 'Invalid selected option' })
+      return
+    }
+
+    res.json({
+      questionId: question.id,
+      selectedOptionId: option.id,
+      selectedOptionText: option.text,
+      scores: option.scores,
+      feedback: option.feedback,
+      explanation: question.explanation,
+    })
+  })
+
+  router.post('/scenarios/:scenarioId/dimension-averages', (req, res) => {
+    const scenario = findScenario(req.params.scenarioId)
+    if (!scenario) {
+      res.status(404).json({ error: 'Scenario not found' })
+      return
+    }
+
+    const parsed = parseStoredAnswersBody(
+      req.body as DimensionAveragesRequestBody,
+      scenario.id,
+    )
+    if (!parsed) {
+      res.status(400).json({ error: 'Invalid answers payload' })
+      return
+    }
+
+    if (!validateAnswersForScenario(scenario, parsed.answers)) {
+      res.status(400).json({ error: 'Invalid answers payload' })
+      return
+    }
+
     try {
-      results = gradeSubmission(scenario, answers)
+      const averages = averageDimensionScores(parsed.answers)
+      res.json({ averages })
     } catch (error) {
-      if (
-        error instanceof Error &&
-        (error.message === 'DUPLICATE_QUESTION_ID' ||
-          error.message === 'UNKNOWN_QUESTION_ID' ||
-          error.message === 'UNKNOWN_OPTION_TEXT')
-      ) {
-        res.status(400).json({ error: 'Invalid answers payload' })
+      if (error instanceof Error && error.message === 'NO_ANSWERS') {
+        res.status(400).json({ error: 'No answers provided' })
         return
       }
       throw error
     }
+  })
 
-    const score = results.filter((result) => result.correct).length
-    res.json({
-      score,
-      total: scenario.questions.length,
-      results,
-    })
+  router.post('/scenarios/:scenarioId/result', (req, res) => {
+    const scenario = findScenario(req.params.scenarioId)
+    if (!scenario) {
+      res.status(404).json({ error: 'Scenario not found' })
+      return
+    }
+
+    const parsed = parseStoredAnswersBody(
+      req.body as ScenarioResultRequestBody,
+      scenario.id,
+    )
+    if (!parsed) {
+      res.status(400).json({ error: 'Invalid answers payload' })
+      return
+    }
+
+    if (!validateAnswersForScenario(scenario, parsed.answers)) {
+      res.status(400).json({ error: 'Invalid answers payload' })
+      return
+    }
+
+    try {
+      res.json(buildScenarioResult(parsed.answers))
+    } catch (error) {
+      if (error instanceof Error && error.message === 'NO_ANSWERS') {
+        res.status(400).json({ error: 'No answers provided' })
+        return
+      }
+      throw error
+    }
   })
 
   return router
