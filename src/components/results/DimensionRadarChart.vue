@@ -24,10 +24,13 @@ const dimensionOrder: DimensionKey[] = [
   'safety',
 ]
 
-const viewSize = 280
+/** Padding so axis labels (e.g. Appropriateness) are not clipped by the viewBox. */
+const padding = 64
+const plotSize = 200
+const viewSize = plotSize + padding * 2
 const center = viewSize / 2
-const chartRadius = 88
-const labelRadius = 118
+const chartRadius = 76
+const labelRadius = 96
 
 function axisAngle(index: number): number {
   return (Math.PI * 2 * index) / dimensionOrder.length - Math.PI / 2
@@ -74,19 +77,37 @@ const axisLines = computed(() =>
 const labels = computed(() =>
   dimensionOrder.map((key, index) => {
     const angle = axisAngle(index)
-    const x = center + labelRadius * Math.cos(angle)
-    const y = center + labelRadius * Math.sin(angle)
+    const cos = Math.cos(angle)
+    const sin = Math.sin(angle)
+    const x = center + labelRadius * cos
+    const y = center + labelRadius * sin
+
+    let anchor: 'start' | 'middle' | 'end' = 'middle'
+    let dx = 0
+    let dy = 0
+
+    if (sin < -0.45) {
+      anchor = 'middle'
+      dy = -8
+    } else if (sin > 0.45) {
+      anchor = 'middle'
+      dy = 10
+    } else if (cos > 0) {
+      anchor = 'start'
+      dx = 10
+    } else {
+      anchor = 'end'
+      dx = -10
+    }
+
     return {
       key,
       text: DIMENSION_LABELS[key],
       x,
       y,
-      anchor:
-        Math.abs(Math.cos(angle)) < 0.2
-          ? 'middle'
-          : Math.cos(angle) > 0
-            ? 'start'
-            : 'end',
+      anchor,
+      dx,
+      dy,
     }
   }),
 )
@@ -106,6 +127,7 @@ const chartDescription = computed(() =>
     <svg
       class="radar-chart__svg"
       :viewBox="`0 0 ${viewSize} ${viewSize}`"
+      overflow="visible"
       role="img"
       :aria-label="`Communication profile chart: ${chartDescription}`"
     >
@@ -149,6 +171,8 @@ const chartDescription = computed(() =>
           :key="label.key"
           :x="label.x"
           :y="label.y"
+          :dx="label.dx"
+          :dy="label.dy"
           :text-anchor="label.anchor"
           dominant-baseline="middle"
           class="radar-chart__label"
@@ -166,11 +190,14 @@ const chartDescription = computed(() =>
   margin: 0;
   display: flex;
   justify-content: center;
+  overflow: visible;
+  padding-inline: 0.25rem;
 }
 
 .radar-chart__svg {
-  width: min(100%, 17.5rem);
+  width: min(100%, 20rem);
   height: auto;
+  overflow: visible;
 }
 
 .radar-chart__grid-ring {
