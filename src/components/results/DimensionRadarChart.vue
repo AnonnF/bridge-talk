@@ -82,23 +82,14 @@ const labels = computed(() =>
     const x = center + labelRadius * cos
     const y = center + labelRadius * sin
 
-    let anchor: 'start' | 'middle' | 'end' = 'middle'
-    let dx = 0
-    let dy = 0
+    const isTop = sin < -0.45
+    const isBottom = sin > 0.45
+    const isRight = cos > 0
 
-    if (sin < -0.45) {
-      anchor = 'middle'
-      dy = -8
-    } else if (sin > 0.45) {
-      anchor = 'middle'
-      dy = 10
-    } else if (cos > 0) {
-      anchor = 'start'
-      dx = 10
-    } else {
-      anchor = 'end'
-      dx = -10
-    }
+    const anchor: 'start' | 'middle' | 'end' =
+      isTop || isBottom ? 'middle' : isRight ? 'start' : 'end'
+    const dx = isTop || isBottom ? 0 : isRight ? 10 : -10
+    const dy = isTop ? -8 : isBottom ? 10 : 0
 
     return {
       key,
