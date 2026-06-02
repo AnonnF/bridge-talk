@@ -13,5 +13,15 @@ export const router = createRouter({
       name: 'scenario-quiz',
       component: ScenarioQuizPage,
     },
+    {
+      path: '/reflect',
+      name: 'reflect',
+      component: () => import('@/views/ReflectView.vue'),
+    },
+    {
+      path: '/reflect/new',
+      name: 'reflect-new',
+      component: () => import('@/views/ReflectNewView.vue'),
+    },
   ],
 })
