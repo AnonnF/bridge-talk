@@ -82,7 +82,7 @@ function formatQuestionCount(count: number): string {
         <ul v-else class="scenario-list">
           <li v-for="scenario in scenarios" :key="scenario.id">
             <RouterLink
-              :to="`/practice/${scenario.id}`"
+              :to="`/learn/${scenario.id}`"
               :class="['scenario-card', `scenario-card--${scenario.id}`]"
             >
               <span class="scenario-card__icon" aria-hidden="true">
