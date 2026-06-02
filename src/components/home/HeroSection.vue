@@ -5,7 +5,8 @@ const cards = [
     icon: '🎓',
     iconBg: '#e8f0eb',
     title: 'Multiple choice',
-    description: 'Learn communication skills through guided scenarios at your own pace.',
+    description:
+      'Learn communication skills through guided scenarios at your own pace.',
   },
   {
     to: null,
@@ -30,7 +31,7 @@ const cards = [
     <div class="hero__inner">
       <p class="hero__greeting">Good morning, Maya</p>
       <h1 id="hero-heading" class="hero__title">
-        Practice communication<br>before real conversations
+        Practice communication<br />before real conversations
       </h1>
       <p class="hero__subtitle">
         BridgeTalk helps you prepare for everyday situations through guided
@@ -51,7 +52,9 @@ const cards = [
           </div>
           <h2 class="feature-card__title">{{ card.title }}</h2>
           <p class="feature-card__desc">{{ card.description }}</p>
-          <span v-if="card.disabled" class="feature-card__wip">Coming soon</span>
+          <span v-if="card.disabled" class="feature-card__wip"
+            >Coming soon</span
+          >
         </component>
       </div>
     </div>
@@ -121,11 +124,13 @@ const cards = [
   text-decoration: none;
   color: inherit;
   text-align: left;
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s;
 }
 
 .feature-card:not(.feature-card--disabled):hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
 
@@ -159,8 +164,9 @@ const cards = [
 .feature-card__wip {
   font-size: 0.75rem;
   color: var(--color-text);
-  background: rgba(0,0,0,0.06);
+  background: rgba(0, 0, 0, 0.06);
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
 }
-</style>git 
+</style>
+git
