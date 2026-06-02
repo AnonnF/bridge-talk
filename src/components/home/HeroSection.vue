@@ -1,22 +1,59 @@
 <script setup lang="ts">
-import BaseButton from '../ui/BaseButton.vue'
-import IconSpeech from '../ui/IconSpeech.vue'
+const cards = [
+  {
+    to: '/learn',
+    icon: '🎓',
+    iconBg: '#e8f0eb',
+    title: 'Multiple choice',
+    description: 'Learn communication skills through guided scenarios at your own pace.',
+  },
+  {
+    to: null,
+    icon: '👥',
+    iconBg: '#e8eaf6',
+    title: 'Human interactions',
+    description: 'Practise with peers in a safe, moderated environment.',
+    disabled: true,
+  },
+  {
+    to: '/reflect',
+    icon: '📓',
+    iconBg: '#f5f0e8',
+    title: 'Conversation journal',
+    description: 'Reflect on real interactions and track your growth.',
+  },
+]
 </script>
 
 <template>
   <section class="hero" aria-labelledby="hero-heading">
     <div class="hero__inner">
+      <p class="hero__greeting">Good morning, Maya</p>
       <h1 id="hero-heading" class="hero__title">
-        Practice communication before real conversations
+        Practice communication<br>before real conversations
       </h1>
       <p class="hero__subtitle">
         BridgeTalk helps you prepare for everyday situations through guided
         scenarios and safe interaction practice.
       </p>
-      <BaseButton to="/practice" size="lg" class="hero__cta">
-        <IconSpeech />
-        Practice now
-      </BaseButton>
+
+      <div class="hero__cards">
+        <component
+          :is="card.to ? 'RouterLink' : 'div'"
+          v-for="card in cards"
+          :key="card.title"
+          :to="card.to ?? undefined"
+          class="feature-card"
+          :class="{ 'feature-card--disabled': card.disabled }"
+        >
+          <div class="feature-card__icon" :style="{ background: card.iconBg }">
+            {{ card.icon }}
+          </div>
+          <h2 class="feature-card__title">{{ card.title }}</h2>
+          <p class="feature-card__desc">{{ card.description }}</p>
+          <span v-if="card.disabled" class="feature-card__wip">Coming soon</span>
+        </component>
+      </div>
     </div>
   </section>
 </template>
@@ -41,6 +78,13 @@ import IconSpeech from '../ui/IconSpeech.vue'
   max-width: var(--max-hero);
 }
 
+.hero__greeting {
+  font-size: var(--text-body);
+  color: #4caf7d;
+  font-weight: 500;
+  margin-bottom: -0.5rem;
+}
+
 .hero__title {
   max-width: var(--max-hero);
   font-size: var(--text-hero);
@@ -57,7 +101,66 @@ import IconSpeech from '../ui/IconSpeech.vue'
   color: var(--color-text);
 }
 
-.hero__cta {
-  margin-top: calc(var(--space-hero-cta-top) - var(--space-hero-gap));
+.hero__cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 52rem;
+  margin-top: 1.5rem;
 }
-</style>
+
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: var(--color-surface, #f5f5f0);
+  border-radius: 1rem;
+  text-decoration: none;
+  color: inherit;
+  text-align: left;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.feature-card:not(.feature-card--disabled):hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+
+.feature-card--disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.feature-card__icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.feature-card__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.feature-card__desc {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.feature-card__wip {
+  font-size: 0.75rem;
+  color: var(--color-text);
+  background: rgba(0,0,0,0.06);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+</style>git 
