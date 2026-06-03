@@ -224,7 +224,7 @@ async function handleCheckAnswer() {
   <div class="quiz-page">
     <header v-if="showQuiz" class="quiz-header">
       <div class="quiz-header__top">
-        <RouterLink to="/practice" class="quiz-header__back">
+        <RouterLink to="/learn" class="quiz-header__back">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -287,7 +287,7 @@ async function handleCheckAnswer() {
 
         <CommunicationProfile :result="results" />
 
-        <BaseButton to="/practice" size="sm">Back to practice</BaseButton>
+        <BaseButton to="/learn" size="sm">Back to practice</BaseButton>
       </section>
 
       <section
@@ -387,7 +387,7 @@ async function handleCheckAnswer() {
         </p>
       </section>
 
-      <BaseButton v-else to="/practice" size="sm">Back to practice</BaseButton>
+      <BaseButton v-else to="/learn" size="sm">Back to practice</BaseButton>
     </main>
 
     <footer v-if="showQuiz" class="quiz-footer">
