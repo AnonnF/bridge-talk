@@ -1,11 +1,16 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type {
-  Question,
-  QuestionBank,
-  Scenario,
-  ScenarioLevel,
+import {
+  DIMENSION_KEYS,
+  type DimensionKey,
+  type DimensionScores,
+  type OptionId,
+  type Question,
+  type QuestionBank,
+  type QuestionOption,
+  type Scenario,
+  type ScenarioLevel,
 } from '../types/questionBank.js'
 
 const SCENARIO_LEVELS: ScenarioLevel[] = [
@@ -13,6 +18,8 @@ const SCENARIO_LEVELS: ScenarioLevel[] = [
   'intermediate',
   'advanced',
 ]
+
+const OPTION_IDS: OptionId[] = ['A', 'B', 'C', 'D']
 
 const dataDir = dirname(fileURLToPath(import.meta.url))
 
@@ -32,6 +39,44 @@ function requireString(
   return value
 }
 
+function parseDimensionScores(raw: unknown, context: string): DimensionScores {
+  if (!isRecord(raw)) {
+    throw new Error(`${context}: "scores" must be an object`)
+  }
+
+  const scores = {} as DimensionScores
+  for (const key of DIMENSION_KEYS) {
+    const value = raw[key]
+    if (typeof value !== 'number' || !Number.isInteger(value)) {
+      throw new Error(`${context}: "scores.${key}" must be an integer`)
+    }
+    if (value < 0 || value > 5) {
+      throw new Error(`${context}: "scores.${key}" must be between 0 and 5`)
+    }
+    scores[key as DimensionKey] = value
+  }
+
+  return scores
+}
+
+function parseQuestionOption(raw: unknown, context: string): QuestionOption {
+  if (!isRecord(raw)) {
+    throw new Error(`${context}: option must be an object`)
+  }
+
+  const id = requireString(raw, 'id', context)
+  if (!OPTION_IDS.includes(id as OptionId)) {
+    throw new Error(`${context}: "id" must be one of ${OPTION_IDS.join(', ')}`)
+  }
+
+  return {
+    id: id as OptionId,
+    text: requireString(raw, 'text', context),
+    scores: parseDimensionScores(raw.scores, context),
+    feedback: requireString(raw, 'feedback', context),
+  }
+}
+
 function parseQuestion(raw: unknown, context: string): Question {
   if (!isRecord(raw)) {
     throw new Error(`${context}: question must be an object`)
@@ -39,24 +84,33 @@ function parseQuestion(raw: unknown, context: string): Question {
 
   const optionsRaw = raw.options
   if (!Array.isArray(optionsRaw) || optionsRaw.length !== 4) {
-    throw new Error(`${context}: "options" must be an array of 4 strings`)
+    throw new Error(
+      `${context}: "options" must be an array of 4 option objects`,
+    )
   }
 
-  const options = optionsRaw.map((option, index) => {
-    if (typeof option !== 'string' || option.trim() === '') {
-      throw new Error(
-        `${context}.options[${index}]: option must be a non-empty string`,
-      )
-    }
-    return option
-  })
+  const options = optionsRaw.map((option, index) =>
+    parseQuestionOption(option, `${context}.options[${index}]`),
+  )
 
+  const optionIds = new Set<OptionId>()
   const optionTexts = new Set<string>()
   for (const option of options) {
-    if (optionTexts.has(option)) {
-      throw new Error(`${context}: duplicate option text "${option}"`)
+    if (optionIds.has(option.id)) {
+      throw new Error(`${context}: duplicate option id "${option.id}"`)
     }
-    optionTexts.add(option)
+    optionIds.add(option.id)
+
+    if (optionTexts.has(option.text)) {
+      throw new Error(`${context}: duplicate option text "${option.text}"`)
+    }
+    optionTexts.add(option.text)
+  }
+
+  for (const expectedId of OPTION_IDS) {
+    if (!optionIds.has(expectedId)) {
+      throw new Error(`${context}: missing option id "${expectedId}"`)
+    }
   }
 
   return {
@@ -143,4 +197,8 @@ export function loadQuestionBank(): QuestionBank {
   const parsed: unknown = JSON.parse(fileContents)
   cachedBank = parseQuestionBank(parsed)
   return cachedBank
+}
+
+export function clearQuestionBankCache(): void {
+  cachedBank = null
 }

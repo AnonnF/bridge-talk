@@ -1,4 +1,9 @@
-import type { ScenarioLevel } from './questionBank.js'
+import type { StoredAnswer } from './answers.js'
+import type {
+  DimensionKey,
+  DimensionScores,
+  ScenarioLevel,
+} from './questionBank.js'
 
 export type ScenarioSummary = {
   id: string
@@ -8,35 +13,58 @@ export type ScenarioSummary = {
   questionCount: number
 }
 
+export type QuizOption = {
+  id: string
+  text: string
+}
+
 export type QuizQuestion = {
   id: string
   prompt: string
-  options: string[]
+  options: QuizOption[]
 }
 
-export type SubmitAnswer = {
+export type QuizQuestionsResponse = {
+  questions: QuizQuestion[]
+}
+
+export type SubmitAnswerRequestBody = {
+  userId: string
   questionId: string
-  selectedOptionText: string
+  selectedOptionId: string
 }
 
-export type SubmitRequestBody = {
-  answers: SubmitAnswer[]
-}
-
-export type CheckAnswerRequestBody = {
-  selectedOptionText: string
-}
-
-export type QuestionResult = {
+export type SubmitAnswerResponse = {
   questionId: string
-  correct: boolean
+  selectedOptionId: string
   selectedOptionText: string
-  correctOptionText: string
+  scores: DimensionScores
+  feedback: string
   explanation: string
 }
 
-export type SubmitResponse = {
-  score: number
-  total: number
-  results: QuestionResult[]
+export type DimensionAveragesRequestBody = {
+  userId: string
+  answers: StoredAnswer[]
 }
+
+export type DimensionAveragesResponse = {
+  averages: DimensionScores
+}
+
+export type ScenarioResultRequestBody = {
+  userId: string
+  answers: StoredAnswer[]
+}
+
+export type ScenarioResultResponse = {
+  averages: DimensionScores
+  strongest: DimensionKey
+  weakest: DimensionKey
+  strongestLabel: string
+  weakestLabel: string
+  summary: string
+  suggestions: string[]
+}
+
+export type { StoredAnswer } from './answers.js'

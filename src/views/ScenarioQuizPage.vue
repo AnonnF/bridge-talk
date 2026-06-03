@@ -1,21 +1,30 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import CommunicationProfile from '../components/results/CommunicationProfile.vue'
 import BaseButton from '../components/ui/BaseButton.vue'
+import { useScenarioAnswers } from '../composables/useScenarioAnswers'
 import {
-  checkQuestionAnswer,
   getScenarioQuestions,
+  getScenarioResult,
   getScenarios,
-  submitQuiz,
+  submitAnswer,
 } from '../services/questionBankApi'
 import type {
-  QuestionResult,
   QuizQuestion,
-  SubmitResponse,
+  ScenarioResultResponse,
+  SubmitAnswerResponse,
 } from '../types/questionBank'
+import { getOrCreateUserId } from '../utils/anonymousUserId'
 
 const route = useRoute()
 const scenarioId = computed(() => String(route.params.scenarioId))
+const userId = getOrCreateUserId()
+const {
+  answers: storedAnswers,
+  clearAnswers,
+  upsertAnswer,
+} = useScenarioAnswers(userId, scenarioId)
 
 const scenarioTitle = ref('')
 const questions = ref<QuizQuestion[]>([])
@@ -23,21 +32,21 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 
 const currentIndex = ref(0)
-const selectedTextByQuestionId = ref<Record<string, string>>({})
-const feedbackByQuestionId = ref<Record<string, QuestionResult>>({})
+const selectedOptionIdByQuestionId = ref<Record<string, string>>({})
+const feedbackByQuestionId = ref<Record<string, SubmitAnswerResponse>>({})
 const submitting = ref(false)
-const results = ref<SubmitResponse | null>(null)
+const results = ref<ScenarioResultResponse | null>(null)
 
 const currentQuestion = computed(
   () => questions.value[currentIndex.value] ?? null,
 )
 
-const currentSelection = computed(() => {
+const currentSelectionId = computed(() => {
   const question = currentQuestion.value
   if (!question) {
     return ''
   }
-  return selectedTextByQuestionId.value[question.id] ?? ''
+  return selectedOptionIdByQuestionId.value[question.id] ?? ''
 })
 
 const currentFeedback = computed(() => {
@@ -48,16 +57,11 @@ const currentFeedback = computed(() => {
   return feedbackByQuestionId.value[question.id] ?? null
 })
 
-const currentCorrectAnswerText = computed(() => {
-  const feedback = currentFeedback.value
-  return feedback?.correctOptionText ?? ''
-})
-
 const isLastQuestion = computed(
   () => currentIndex.value === questions.value.length - 1,
 )
 
-const canAdvance = computed(() => currentSelection.value !== '')
+const canAdvance = computed(() => currentSelectionId.value !== '')
 
 const canUsePrimaryAction = computed(
   () =>
@@ -73,7 +77,7 @@ const primaryActionLabel = computed(() => {
   if (currentFeedback.value) {
     return isLastQuestion.value ? 'See Results' : 'Next'
   }
-  return 'Check Answer'
+  return 'Reflect on Answer'
 })
 
 const progressPercent = computed(() => {
@@ -87,13 +91,9 @@ const showQuiz = computed(
   () => !loading.value && !results.value && currentQuestion.value !== null,
 )
 
-const incorrectAnswerCount = computed(() =>
-  results.value
-    ? results.value.results.filter((result) => !result.correct).length
-    : 0,
-)
-
 onMounted(async () => {
+  clearAnswers()
+
   try {
     const [scenarios, questionsResponse] = await Promise.all([
       getScenarios(),
@@ -116,14 +116,14 @@ onMounted(async () => {
   }
 })
 
-function selectOption(optionText: string) {
+function selectOption(optionId: string) {
   const question = currentQuestion.value
   if (!question || currentFeedback.value) {
     return
   }
-  selectedTextByQuestionId.value = {
-    ...selectedTextByQuestionId.value,
-    [question.id]: optionText,
+  selectedOptionIdByQuestionId.value = {
+    ...selectedOptionIdByQuestionId.value,
+    [question.id]: optionId,
   }
 }
 
@@ -134,17 +134,23 @@ function goToPrevious() {
 }
 
 async function submitCurrentQuiz() {
+  if (storedAnswers.value.length === 0) {
+    error.value =
+      'Answer at least one question to see your communication profile.'
+    return
+  }
+
   submitting.value = true
   error.value = null
 
   try {
-    const answers = questions.value.map((question) => ({
-      questionId: question.id,
-      selectedOptionText: selectedTextByQuestionId.value[question.id] ?? '',
-    }))
-    results.value = await submitQuiz(scenarioId.value, answers)
+    results.value = await getScenarioResult(
+      scenarioId.value,
+      userId,
+      storedAnswers.value,
+    )
   } catch {
-    error.value = 'Could not submit your answers. Please try again.'
+    error.value = 'Could not load your communication profile. Please try again.'
   } finally {
     submitting.value = false
   }
@@ -156,9 +162,9 @@ function handleNotSure() {
     return
   }
 
-  const nextSelections = { ...selectedTextByQuestionId.value }
+  const nextSelections = { ...selectedOptionIdByQuestionId.value }
   delete nextSelections[question.id]
-  selectedTextByQuestionId.value = nextSelections
+  selectedOptionIdByQuestionId.value = nextSelections
 
   if (!isLastQuestion.value) {
     currentIndex.value += 1
@@ -188,15 +194,26 @@ async function handleCheckAnswer() {
   error.value = null
 
   try {
-    const feedback = await checkQuestionAnswer(scenarioId.value, question.id, {
-      selectedOptionText: currentSelection.value,
+    const feedback = await submitAnswer(scenarioId.value, {
+      userId,
+      questionId: question.id,
+      selectedOptionId: currentSelectionId.value,
     })
     feedbackByQuestionId.value = {
       ...feedbackByQuestionId.value,
       [question.id]: feedback,
     }
+    upsertAnswer({
+      userId,
+      scenarioId: scenarioId.value,
+      questionId: question.id,
+      selectedOptionId: feedback.selectedOptionId,
+      selectedOptionText: feedback.selectedOptionText,
+      scores: feedback.scores,
+      timestamp: new Date().toISOString(),
+    })
   } catch {
-    error.value = 'Could not check your answer. Please try again.'
+    error.value = 'Could not save your answer. Please try again.'
   } finally {
     submitting.value = false
   }
@@ -266,17 +283,9 @@ async function handleCheckAnswer() {
         class="quiz-results"
         aria-labelledby="quiz-results-title"
       >
-        <h1 id="quiz-results-title">Your results</h1>
-        <p class="quiz-results__score">
-          You scored {{ results.score }} / {{ results.total }}
-        </p>
+        <h1 id="quiz-results-title">Communication Profile</h1>
 
-        <div class="quiz-results__report">
-          <p>
-            Summary Report here, for now use this placeholder. Correct answers:
-            {{ results.score }}. Wrong answers: {{ incorrectAnswerCount }}.
-          </p>
-        </div>
+        <CommunicationProfile :result="results" />
 
         <BaseButton to="/learn" size="sm">Back to practice</BaseButton>
       </section>
@@ -339,53 +348,35 @@ async function handleCheckAnswer() {
           <legend class="visually-hidden">Choose an answer</legend>
           <label
             v-for="option in currentQuestion.options"
-            :key="option"
+            :key="option.id"
             class="quiz-option"
             :class="{
-              'is-selected': currentSelection === option,
+              'is-selected': currentSelectionId === option.id,
               'is-checked': currentFeedback !== null,
-              'is-correct': currentFeedback?.correctOptionText === option,
-              'is-incorrect':
-                currentFeedback !== null &&
-                currentSelection === option &&
-                !currentFeedback.correct,
             }"
           >
             <input
               type="radio"
               :name="currentQuestion.id"
-              :value="option"
-              :checked="currentSelection === option"
+              :value="option.id"
+              :checked="currentSelectionId === option.id"
               :disabled="currentFeedback !== null"
-              @change="selectOption(option)"
+              @change="selectOption(option.id)"
             />
             <span class="quiz-option__radio" aria-hidden="true">
               <span
-                v-if="currentSelection === option"
+                v-if="currentSelectionId === option.id"
                 class="quiz-option__radio-dot"
               />
             </span>
-            <span class="quiz-option__text">{{ option }}</span>
+            <span class="quiz-option__text">{{ option.text }}</span>
           </label>
         </fieldset>
 
-        <div
-          v-if="currentFeedback"
-          class="quiz-feedback"
-          :class="
-            currentFeedback.correct
-              ? 'quiz-feedback--correct'
-              : 'quiz-feedback--incorrect'
-          "
-          role="status"
-        >
-          <p class="quiz-feedback__verdict">
-            {{ currentFeedback.correct ? 'Correct' : 'Incorrect' }}
+        <div v-if="currentFeedback" class="quiz-feedback" role="status">
+          <p class="quiz-feedback__reflection">
+            {{ currentFeedback.feedback }}
           </p>
-          <div v-if="!currentFeedback.correct" class="quiz-feedback__answer">
-            <span>Correct answer</span>
-            <p>{{ currentCorrectAnswerText }}</p>
-          </div>
           <p class="quiz-feedback__explanation">
             {{ currentFeedback.explanation }}
           </p>
@@ -642,30 +633,6 @@ async function handleCheckAnswer() {
   border-color: var(--color-text-strong);
 }
 
-.quiz-option.is-correct {
-  border: 2px solid #2e7d4f;
-}
-
-.quiz-option.is-incorrect {
-  border: 2px solid #b3261e;
-}
-
-.quiz-option.is-correct .quiz-option__radio {
-  border-color: #2e7d4f;
-}
-
-.quiz-option.is-incorrect .quiz-option__radio {
-  border-color: #b3261e;
-}
-
-.quiz-option.is-correct .quiz-option__radio-dot {
-  background: #2e7d4f;
-}
-
-.quiz-option.is-incorrect .quiz-option__radio-dot {
-  background: #b3261e;
-}
-
 .quiz-option__radio-dot {
   width: 0.625rem;
   height: 0.625rem;
@@ -767,46 +734,22 @@ async function handleCheckAnswer() {
   display: grid;
   gap: 0.875rem;
   padding: 1rem;
-  border-left: 4px solid #2e7d4f;
+  border-left: 4px solid var(--color-text-strong);
   border-radius: 1rem;
   background: rgb(255 255 255 / 0.7);
   font-family: var(--font-sans);
 }
 
-.quiz-feedback--incorrect {
-  border-left-color: #b3261e;
-}
-
-.quiz-feedback__verdict {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.4;
-  color: var(--color-text-strong);
-}
-
-.quiz-feedback__answer {
-  display: grid;
-  gap: 0.375rem;
-  padding: 0.875rem 1rem;
-  border-radius: 0.75rem;
-  background: #ffffff;
-  color: var(--color-text-strong);
-}
-
-.quiz-feedback__answer span {
-  font-size: 0.75rem;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.4;
-  color: var(--color-text);
-  text-transform: uppercase;
-}
-
-.quiz-feedback__answer p,
+.quiz-feedback__reflection,
 .quiz-feedback__explanation {
   margin: 0;
   font-size: 0.9375rem;
   line-height: 1.55;
+}
+
+.quiz-feedback__reflection {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-strong);
 }
 
 .quiz-feedback__explanation {
@@ -827,27 +770,6 @@ async function handleCheckAnswer() {
   font-size: clamp(1.75rem, 4vw, 2rem);
   font-weight: var(--font-weight-heading);
   color: var(--color-text-strong);
-}
-
-.quiz-results__score {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: 1.125rem;
-  color: var(--color-text);
-}
-
-.quiz-results__report {
-  padding: 1rem 1.125rem;
-  border-radius: 1rem;
-  background: rgb(255 255 255 / 0.7);
-}
-
-.quiz-results__report p {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: 0.9375rem;
-  line-height: 1.55;
-  color: var(--color-text);
 }
 
 .visually-hidden {
