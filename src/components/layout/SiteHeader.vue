@@ -68,6 +68,7 @@
 
 .site-nav__link {
   font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text);
   text-decoration: none;
   transition: color 0.15s;

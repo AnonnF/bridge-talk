@@ -84,7 +84,7 @@ const cards = [
 .hero__greeting {
   font-size: var(--text-body);
   color: #4caf7d;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: -0.5rem;
 }
 
