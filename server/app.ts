@@ -1,5 +1,6 @@
 import cors from 'cors'
 import express from 'express'
+import { createAuthRouter } from './routes/auth.js'
 import { createScenariosRouter } from './routes/scenarios.js'
 
 export function createApp() {
@@ -22,6 +23,7 @@ export function createApp() {
     res.json({ ok: true })
   })
 
+  app.use('/api', createAuthRouter())
   app.use('/api', createScenariosRouter())
 
   return app
