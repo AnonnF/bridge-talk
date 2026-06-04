@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import SiteHeader from '@/components/layout/SiteHeader.vue'
 import DimensionLineChart from '@/components/progress/DimensionLineChart.vue'
@@ -45,6 +45,8 @@ const entries = ref<JournalEntry[]>([])
 const learners = ref<LearnerProgress[]>([])
 const journalLoading = ref(true)
 const progressLoading = ref(true)
+const journalSearch = ref('')
+const progressSearch = ref('')
 
 onMounted(async () => {
   const [journalData, quizData, scenarios] = await Promise.all([
@@ -158,6 +160,20 @@ function colorFor(index: number): string {
   return COLORS[index % COLORS.length]
 }
 
+const filteredEntries = computed(() => {
+  const q = journalSearch.value.trim().toLowerCase()
+  if (!q) return entries.value
+  return entries.value.filter((e) =>
+    (e.profiles?.display_name ?? '').toLowerCase().includes(q),
+  )
+})
+
+const filteredLearners = computed(() => {
+  const q = progressSearch.value.trim().toLowerCase()
+  if (!q) return learners.value
+  return learners.value.filter((l) => l.displayName.toLowerCase().includes(q))
+})
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -212,11 +228,52 @@ function attemptLabel(n: number) {
           <div v-if="journalLoading" class="state-message">
             Loading entries…
           </div>
-          <div v-else-if="entries.length === 0" class="state-message">
-            No shared entries yet.
-          </div>
-          <ul v-else class="entry-list">
-            <li v-for="entry in entries" :key="entry.id" class="entry-card">
+          <template v-else>
+            <div class="search-bar">
+              <svg
+                class="search-bar__icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M16.5 16.5l4 4" stroke-linecap="round" />
+              </svg>
+              <input
+                v-model="journalSearch"
+                type="search"
+                class="search-bar__input"
+                placeholder="Search by learner name…"
+                aria-label="Search journals by learner name"
+              />
+              <button
+                v-if="journalSearch"
+                class="search-bar__clear"
+                aria-label="Clear search"
+                @click="journalSearch = ''"
+              >
+                ✕
+              </button>
+            </div>
+            <div v-if="filteredEntries.length === 0" class="state-message">
+              {{
+                journalSearch
+                  ? 'No entries match your search.'
+                  : 'No shared entries yet.'
+              }}
+            </div>
+          </template>
+          <ul
+            v-if="!journalLoading && filteredEntries.length > 0"
+            class="entry-list"
+          >
+            <li
+              v-for="entry in filteredEntries"
+              :key="entry.id"
+              class="entry-card"
+            >
               <div class="entry-meta">
                 <span class="entry-author">{{
                   entry.profiles?.display_name ?? 'Anonymous'
@@ -250,12 +307,49 @@ function attemptLabel(n: number) {
           <div v-if="progressLoading" class="state-message">
             Loading progress…
           </div>
-          <div v-else-if="learners.length === 0" class="state-message">
-            No quiz results yet.
-          </div>
-          <div v-else class="learner-list">
+          <template v-else>
+            <div class="search-bar">
+              <svg
+                class="search-bar__icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M16.5 16.5l4 4" stroke-linecap="round" />
+              </svg>
+              <input
+                v-model="progressSearch"
+                type="search"
+                class="search-bar__input"
+                placeholder="Search by learner name…"
+                aria-label="Search quiz progress by learner name"
+              />
+              <button
+                v-if="progressSearch"
+                class="search-bar__clear"
+                aria-label="Clear search"
+                @click="progressSearch = ''"
+              >
+                ✕
+              </button>
+            </div>
+            <div v-if="filteredLearners.length === 0" class="state-message">
+              {{
+                progressSearch
+                  ? 'No learners match your search.'
+                  : 'No quiz results yet.'
+              }}
+            </div>
+          </template>
+          <div
+            v-if="!progressLoading && filteredLearners.length > 0"
+            class="learner-list"
+          >
             <div
-              v-for="learner in learners"
+              v-for="learner in filteredLearners"
               :key="learner.userId"
               class="learner-card"
             >
@@ -362,6 +456,59 @@ function attemptLabel(n: number) {
   font-size: var(--text-body);
   color: var(--color-text);
   margin: 0;
+}
+
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  background: #fff;
+  border: 1.5px solid var(--color-radio-border);
+  border-radius: 8px;
+  transition: border-color 0.15s;
+}
+
+.search-bar:focus-within {
+  border-color: var(--color-text-strong);
+}
+
+.search-bar__icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  margin-left: 0.75rem;
+  color: var(--color-text);
+  pointer-events: none;
+}
+
+.search-bar__input {
+  flex: 1;
+  padding: 0.625rem 0.75rem;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--color-text-strong);
+  outline: none;
+}
+
+.search-bar__input::placeholder {
+  color: var(--color-radio-border);
+}
+
+.search-bar__clear {
+  padding: 0 0.75rem;
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: var(--color-text);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.search-bar__clear:hover {
+  color: var(--color-text-strong);
 }
 
 .dashboard-tabs {
