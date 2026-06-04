@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuth } from '@/composables/useAuth'
+import ProgressTab from '@/components/progress/ProgressTab.vue'
 
 const { profile } = useAuth()
 
@@ -10,6 +11,8 @@ const greeting = computed(() => {
   const name = profile.value?.display_name
   return name ? `Good ${timeOfDay}, ${name}` : `Good ${timeOfDay}`
 })
+
+const activeTab = ref<'overview' | 'progress'>('overview')
 
 const cards = [
   {
@@ -50,7 +53,28 @@ const cards = [
         scenarios and safe interaction practice.
       </p>
 
-      <div class="hero__cards">
+      <div class="hero__tabs" role="tablist">
+        <button
+          role="tab"
+          :aria-selected="activeTab === 'overview'"
+          class="hero__tab"
+          :class="{ 'hero__tab--active': activeTab === 'overview' }"
+          @click="activeTab = 'overview'"
+        >
+          Overview
+        </button>
+        <button
+          role="tab"
+          :aria-selected="activeTab === 'progress'"
+          class="hero__tab"
+          :class="{ 'hero__tab--active': activeTab === 'progress' }"
+          @click="activeTab = 'progress'"
+        >
+          My Progress
+        </button>
+      </div>
+
+      <div v-if="activeTab === 'overview'" class="hero__cards">
         <component
           :is="card.to ? 'RouterLink' : 'div'"
           v-for="card in cards"
@@ -69,6 +93,8 @@ const cards = [
           >
         </component>
       </div>
+
+      <ProgressTab v-else />
     </div>
   </section>
 </template>
@@ -116,13 +142,45 @@ const cards = [
   color: var(--color-text);
 }
 
+.hero__tabs {
+  display: flex;
+  border-bottom: 1.5px solid var(--color-surface-muted);
+  width: 100%;
+  max-width: 52rem;
+  margin-bottom: -0.5rem;
+}
+
+.hero__tab {
+  padding: 0.5rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1.5px;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.hero__tab:hover {
+  color: var(--color-text-strong);
+}
+
+.hero__tab--active {
+  color: var(--color-text-strong);
+  border-bottom-color: var(--color-text-strong);
+}
+
 .hero__cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
   width: 100%;
   max-width: 52rem;
-  margin-top: 1.5rem;
 }
 
 .feature-card {

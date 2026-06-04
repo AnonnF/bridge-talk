@@ -16,10 +16,13 @@ import type {
   SubmitAnswerResponse,
 } from '../types/questionBank'
 import { getOrCreateUserId } from '../utils/anonymousUserId'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
 const scenarioId = computed(() => String(route.params.scenarioId))
 const userId = getOrCreateUserId()
+const { user } = useAuth()
 const {
   answers: storedAnswers,
   clearAnswers,
@@ -149,6 +152,17 @@ async function submitCurrentQuiz() {
       userId,
       storedAnswers.value,
     )
+    if (results.value && user.value) {
+      void supabase.from('quiz_results').insert({
+        user_id: user.value.id,
+        scenario_id: scenarioId.value,
+        clarity: results.value.averages.clarity,
+        empathy: results.value.averages.empathy,
+        appropriateness: results.value.averages.appropriateness,
+        confidence: results.value.averages.confidence,
+        safety: results.value.averages.safety,
+      })
+    }
   } catch {
     error.value = 'Could not load your communication profile. Please try again.'
   } finally {
