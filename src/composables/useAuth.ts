@@ -14,6 +14,13 @@ const currentUser = ref<User | null>(null)
 const currentProfile = ref<Profile | null>(null)
 const loading = ref(true)
 
+// Resolves once the initial session check is complete — guards await this
+// instead of making their own Supabase calls on every navigation.
+let resolveReady!: () => void
+const ready = new Promise<void>((resolve) => {
+  resolveReady = resolve
+})
+
 async function fetchProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('profiles')
@@ -32,6 +39,7 @@ async function init() {
     currentProfile.value = await fetchProfile(currentUser.value.id)
   }
   loading.value = false
+  resolveReady()
 
   supabase.auth.onAuthStateChange(async (_event, session) => {
     currentUser.value = session?.user ?? null
@@ -59,6 +67,7 @@ export function useAuth() {
     user: readonly(currentUser),
     profile: readonly(currentProfile),
     loading: readonly(loading),
+    ready,
     signIn,
     signOut,
   }

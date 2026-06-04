@@ -71,6 +71,10 @@ async function handleSubmit() {
 
           <p v-if="error" class="form-error" role="alert">{{ error }}</p>
 
+          <div class="form-footer">
+            <RouterLink to="/forgot-password" class="forgot-link">Forgot password?</RouterLink>
+          </div>
+
           <button type="submit" class="login-btn" :disabled="submitting">
             {{ submitting ? 'Signing in…' : 'Sign in' }}
           </button>
@@ -161,6 +165,22 @@ async function handleSubmit() {
 
 .form-input::placeholder {
   color: var(--color-radio-border);
+}
+
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.forgot-link {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  color: var(--color-text-strong);
+  text-decoration: underline;
 }
 
 .form-error {
