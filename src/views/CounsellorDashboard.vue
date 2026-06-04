@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import SiteHeader from '@/components/layout/SiteHeader.vue'
 import DimensionLineChart from '@/components/progress/DimensionLineChart.vue'
+import CombinedProgressChart from '@/components/progress/CombinedProgressChart.vue'
 import { getScenarios } from '@/services/questionBankApi'
 import type { DimensionKey } from '@/types/questionBank'
 
@@ -110,8 +111,52 @@ onMounted(async () => {
   }
 
   learners.value = Array.from(userMap.values())
+  for (const learner of learners.value) {
+    visibleByLearner.value.set(
+      learner.userId,
+      new Set(learner.scenarios.map((s) => s.id)),
+    )
+  }
   progressLoading.value = false
 })
+
+const visibleByLearner = ref<Map<string, Set<string>>>(new Map())
+
+function toggleScenario(userId: string, scenarioId: string) {
+  const current = visibleByLearner.value.get(userId) ?? new Set()
+  const next = new Set(current)
+  if (next.has(scenarioId)) {
+    if (next.size > 1) next.delete(scenarioId)
+  } else {
+    next.add(scenarioId)
+  }
+  visibleByLearner.value = new Map(visibleByLearner.value).set(userId, next)
+}
+
+function showAll(learner: LearnerProgress) {
+  visibleByLearner.value = new Map(visibleByLearner.value).set(
+    learner.userId,
+    new Set(learner.scenarios.map((s) => s.id)),
+  )
+}
+
+function allVisible(learner: LearnerProgress): boolean {
+  const vis = visibleByLearner.value.get(learner.userId)
+  return !vis || vis.size === learner.scenarios.length
+}
+
+const COLORS = [
+  '#5a8a72',
+  '#a0685a',
+  '#8a7a42',
+  '#5a6a8a',
+  '#8a6a9a',
+  '#6a8a5a',
+  '#a07848',
+]
+function colorFor(index: number): string {
+  return COLORS[index % COLORS.length]
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', {
@@ -215,6 +260,42 @@ function attemptLabel(n: number) {
               class="learner-card"
             >
               <h2 class="learner-name">{{ learner.displayName }}</h2>
+
+              <div class="learner-combined">
+                <div class="scenario-toggles">
+                  <button
+                    v-for="(scenario, i) in learner.scenarios"
+                    :key="scenario.id"
+                    class="toggle-pill"
+                    :style="
+                      (visibleByLearner.get(learner.userId) ?? new Set()).has(
+                        scenario.id,
+                      )
+                        ? {
+                            background: colorFor(i),
+                            borderColor: colorFor(i),
+                            color: '#fff',
+                          }
+                        : { borderColor: colorFor(i), color: colorFor(i) }
+                    "
+                    @click="toggleScenario(learner.userId, scenario.id)"
+                  >
+                    {{ scenario.title }}
+                  </button>
+                  <button
+                    v-if="!allVisible(learner)"
+                    class="toggle-pill toggle-pill--reset"
+                    @click="showAll(learner)"
+                  >
+                    Show all
+                  </button>
+                </div>
+                <CombinedProgressChart
+                  :scenarios="learner.scenarios"
+                  :visible="visibleByLearner.get(learner.userId) ?? new Set()"
+                />
+              </div>
+
               <div class="scenario-list">
                 <div
                   v-for="scenario in learner.scenarios"
@@ -398,6 +479,45 @@ function attemptLabel(n: number) {
   margin: 0 0 1.25rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-surface-muted);
+}
+
+.learner-combined {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-surface-muted);
+}
+
+.scenario-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.toggle-pill {
+  padding: 0.3rem 0.875rem;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  background: transparent;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.toggle-pill--reset {
+  border-color: var(--color-radio-border);
+  color: var(--color-text);
+}
+
+.toggle-pill--reset:hover {
+  border-color: var(--color-text-strong);
+  color: var(--color-text-strong);
 }
 
 .scenario-list {
