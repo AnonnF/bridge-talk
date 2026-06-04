@@ -9,6 +9,7 @@ import type { DimensionKey } from '@/types/questionBank'
 
 interface JournalEntry {
   id: string
+  user_id: string
   situation: string | null
   went_well: string | null
   was_hard: string | null
@@ -47,13 +48,14 @@ const journalLoading = ref(true)
 const progressLoading = ref(true)
 const journalSearch = ref('')
 const progressSearch = ref('')
+const selectedLearnerId = ref('')
 
 onMounted(async () => {
   const [journalData, quizData, scenarios] = await Promise.all([
     supabase
       .from('journal_entries')
       .select(
-        'id, situation, went_well, was_hard, do_differently, created_at, profiles(display_name)',
+        'id, user_id, situation, went_well, was_hard, do_differently, created_at, profiles(display_name)',
       )
       .eq('shared_with_counsellor', true)
       .order('created_at', { ascending: false }),
@@ -77,7 +79,7 @@ onMounted(async () => {
     if (!userMap.has(row.user_id)) {
       userMap.set(row.user_id, {
         userId: row.user_id,
-        displayName: row.profiles?.display_name ?? 'Anonymous',
+        displayName: formatLearnerName(row.profiles?.display_name),
         scenarios: [],
       })
     }
@@ -160,18 +162,56 @@ function colorFor(index: number): string {
   return COLORS[index % COLORS.length]
 }
 
+function formatLearnerName(name: string | null | undefined): string {
+  return name?.trim() || 'Anonymous'
+}
+
+const learnerOptions = computed(() => {
+  const options = new Map<string, string>()
+
+  for (const learner of learners.value) {
+    options.set(learner.userId, learner.displayName)
+  }
+
+  for (const entry of entries.value) {
+    if (!options.has(entry.user_id)) {
+      options.set(
+        entry.user_id,
+        formatLearnerName(entry.profiles?.display_name),
+      )
+    }
+  }
+
+  return Array.from(options, ([userId, displayName]) => ({
+    userId,
+    displayName,
+  })).sort(
+    (a, b) =>
+      a.displayName.localeCompare(b.displayName) ||
+      a.userId.localeCompare(b.userId),
+  )
+})
+
 const filteredEntries = computed(() => {
   const q = journalSearch.value.trim().toLowerCase()
-  if (!q) return entries.value
-  return entries.value.filter((e) =>
-    (e.profiles?.display_name ?? '').toLowerCase().includes(q),
-  )
+  return entries.value.filter((e) => {
+    const matchesLearner =
+      !selectedLearnerId.value || e.user_id === selectedLearnerId.value
+    const matchesSearch =
+      !q ||
+      formatLearnerName(e.profiles?.display_name).toLowerCase().includes(q)
+    return matchesLearner && matchesSearch
+  })
 })
 
 const filteredLearners = computed(() => {
   const q = progressSearch.value.trim().toLowerCase()
-  if (!q) return learners.value
-  return learners.value.filter((l) => l.displayName.toLowerCase().includes(q))
+  return learners.value.filter((l) => {
+    const matchesLearner =
+      !selectedLearnerId.value || l.userId === selectedLearnerId.value
+    const matchesSearch = !q || l.displayName.toLowerCase().includes(q)
+    return matchesLearner && matchesSearch
+  })
 })
 
 function formatDate(iso: string) {
@@ -201,6 +241,24 @@ function attemptLabel(n: number) {
             </p>
           </div>
         </div>
+
+        <label class="learner-filter">
+          <span class="learner-filter__label">Learner</span>
+          <select
+            v-model="selectedLearnerId"
+            class="learner-filter__select"
+            aria-label="Filter dashboard by learner"
+          >
+            <option value="">Display all</option>
+            <option
+              v-for="learner in learnerOptions"
+              :key="learner.userId"
+              :value="learner.userId"
+            >
+              {{ learner.displayName }}
+            </option>
+          </select>
+        </label>
 
         <div class="dashboard-tabs" role="tablist">
           <button
@@ -456,6 +514,36 @@ function attemptLabel(n: number) {
   font-size: var(--text-body);
   color: var(--color-text);
   margin: 0;
+}
+
+.learner-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 20rem;
+  margin-bottom: 1.5rem;
+}
+
+.learner-filter__label {
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-strong);
+}
+
+.learner-filter__select {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: #fff;
+  border: 1.5px solid var(--color-radio-border);
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--color-text-strong);
+}
+
+.learner-filter__select:focus {
+  outline: none;
+  border-color: var(--color-text-strong);
 }
 
 .search-bar {
