@@ -35,8 +35,9 @@ const loading = ref(true)
 const scenarioProgress = ref<ScenarioProgress[]>([])
 const visibleScenarios = ref<Set<string>>(new Set())
 
-onMounted(async () => {
+async function refetch() {
   if (!user.value) return
+  loading.value = true
 
   const [{ data }, scenarios] = await Promise.all([
     supabase
@@ -76,7 +77,10 @@ onMounted(async () => {
 
   visibleScenarios.value = new Set(scenarioProgress.value.map((s) => s.id))
   loading.value = false
-})
+}
+
+onMounted(refetch)
+defineExpose({ refetch })
 
 const hasResults = computed(() => scenarioProgress.value.length > 0)
 

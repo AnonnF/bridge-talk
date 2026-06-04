@@ -72,8 +72,9 @@ const yGridLines = [0, 1, 2, 3, 4, 5]
 
 const xLabels = computed(() => {
   const n = maxAttempts.value
-  if (n <= 6) return Array.from({ length: n }, (_, i) => i + 1)
-  return [1, Math.ceil(n / 2), n]
+  if (n <= 5) return Array.from({ length: n }, (_, i) => i + 1)
+  const step = (n - 1) / 4
+  return [0, 1, 2, 3, 4].map((i) => Math.round(i * step) + 1)
 })
 </script>
 
@@ -118,6 +119,16 @@ const xLabels = computed(() => {
         text-anchor="middle"
       >
         {{ n }}
+      </text>
+
+      <!-- X axis title -->
+      <text
+        :x="PAD.left + chartW / 2"
+        :y="H + 2"
+        class="axis-title"
+        text-anchor="middle"
+      >
+        attempt
       </text>
 
       <!-- Lines per scenario -->
@@ -182,6 +193,13 @@ const xLabels = computed(() => {
   font-family: var(--font-sans);
   font-size: 9px;
   fill: var(--color-text);
+}
+
+.axis-title {
+  font-family: var(--font-sans);
+  font-size: 8px;
+  fill: var(--color-text);
+  opacity: 0.6;
 }
 
 .legend {

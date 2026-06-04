@@ -46,6 +46,14 @@ function formatDate(iso: string): string {
     month: 'short',
   })
 }
+
+// Show at most 5 date labels evenly spread to avoid crowding
+function xLabelIndices(): number[] {
+  const n = props.attempts.length
+  if (n <= 5) return Array.from({ length: n }, (_, i) => i)
+  const step = (n - 1) / 4
+  return [0, 1, 2, 3, 4].map((i) => Math.round(i * step))
+}
 </script>
 
 <template>
@@ -83,17 +91,17 @@ function formatDate(iso: string): string {
         </text>
       </g>
 
-      <!-- X axis attempt labels -->
+      <!-- X axis date labels -->
       <g class="x-labels">
         <text
-          v-for="(attempt, i) in attempts"
+          v-for="i in xLabelIndices()"
           :key="i"
           :x="xPos(i)"
           :y="H - 4"
           class="axis-label"
           text-anchor="middle"
         >
-          {{ attempts.length === 1 ? formatDate(attempt.completedAt) : i + 1 }}
+          {{ formatDate(attempts[i].completedAt) }}
         </text>
       </g>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import ProgressTab from '@/components/progress/ProgressTab.vue'
 
@@ -13,6 +13,11 @@ const greeting = computed(() => {
 })
 
 const activeTab = ref<'overview' | 'progress'>('overview')
+const progressTabRef = ref<InstanceType<typeof ProgressTab> | null>(null)
+
+watch(activeTab, (tab) => {
+  if (tab === 'progress') progressTabRef.value?.refetch()
+})
 
 const cards = [
   {
@@ -94,7 +99,7 @@ const cards = [
         </component>
       </div>
 
-      <ProgressTab v-else />
+      <ProgressTab v-else ref="progressTabRef" />
     </div>
   </section>
 </template>
