@@ -1,4 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useAuth } from '@/composables/useAuth'
+
+const { profile } = useAuth()
+
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  const timeOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening'
+  const name = profile.value?.display_name
+  return name ? `Good ${timeOfDay}, ${name}` : `Good ${timeOfDay}`
+})
+
 const cards = [
   {
     to: '/learn',
@@ -29,7 +41,7 @@ const cards = [
 <template>
   <section class="hero" aria-labelledby="hero-heading">
     <div class="hero__inner">
-      <p class="hero__greeting">Good morning, Maya</p>
+      <p class="hero__greeting">{{ greeting }}</p>
       <h1 id="hero-heading" class="hero__title">
         Practice communication<br />before real conversations
       </h1>
@@ -169,4 +181,3 @@ const cards = [
   border-radius: 999px;
 }
 </style>
-git
