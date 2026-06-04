@@ -1,44 +1,74 @@
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/composables/useAuth'
 import type { JournalEntry } from '@/types/journal'
 
-const STORAGE_KEY = 'bridge-talk-journal'
+type DbRow = Record<string, unknown>
 
-function load(): JournalEntry[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-  } catch {
-    return []
+function toEntry(row: DbRow): JournalEntry {
+  return {
+    id: row.id as string,
+    createdAt: row.created_at as string,
+    situation: (row.situation as string) ?? '',
+    wentWell: (row.went_well as string) ?? '',
+    wasHard: (row.was_hard as string) ?? '',
+    doDifferently: (row.do_differently as string) ?? '',
+    sharedWithCounsellor: (row.shared_with_counsellor as boolean) ?? false,
   }
 }
 
-const entries = ref<JournalEntry[]>(load())
-
-watch(
-  entries,
-  (val) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
-  },
-  { deep: true },
-)
+const entries = ref<JournalEntry[]>([])
+const loading = ref(false)
 
 export function useJournal() {
-  function addEntry(entry: Omit<JournalEntry, 'id' | 'createdAt'>) {
-    entries.value.unshift({
-      ...entry,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      sharedWithCounsellor: false,
-    })
+  const { user } = useAuth()
+
+  async function fetchEntries() {
+    if (!user.value) return
+    loading.value = true
+    const { data } = await supabase
+      .from('journal_entries')
+      .select('*')
+      .eq('user_id', user.value.id)
+      .order('created_at', { ascending: false })
+    entries.value = (data ?? []).map((row) => toEntry(row as DbRow))
+    loading.value = false
   }
 
-  function deleteEntry(id: string) {
+  async function addEntry(entry: Omit<JournalEntry, 'id' | 'createdAt' | 'sharedWithCounsellor'>) {
+    if (!user.value) return
+    const { data, error } = await supabase
+      .from('journal_entries')
+      .insert({
+        user_id: user.value.id,
+        situation: entry.situation,
+        went_well: entry.wentWell,
+        was_hard: entry.wasHard,
+        do_differently: entry.doDifferently,
+        shared_with_counsellor: false,
+      })
+      .select()
+      .single()
+    if (!error && data) {
+      entries.value.unshift(toEntry(data as DbRow))
+    }
+  }
+
+  async function deleteEntry(id: string) {
+    await supabase.from('journal_entries').delete().eq('id', id)
     entries.value = entries.value.filter((e) => e.id !== id)
   }
 
-  function toggleShare(id: string) {
-    const e = entries.value.find((e) => e.id === id)
-    if (e) e.sharedWithCounsellor = !e.sharedWithCounsellor
+  async function toggleShare(id: string) {
+    const entry = entries.value.find((e) => e.id === id)
+    if (!entry) return
+    const newValue = !entry.sharedWithCounsellor
+    await supabase
+      .from('journal_entries')
+      .update({ shared_with_counsellor: newValue })
+      .eq('id', id)
+    entry.sharedWithCounsellor = newValue
   }
 
-  return { entries, addEntry, deleteEntry, toggleShare }
+  return { entries, loading, fetchEntries, addEntry, deleteEntry, toggleShare }
 }

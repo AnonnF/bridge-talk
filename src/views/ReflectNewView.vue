@@ -130,13 +130,12 @@ const prompts = [
   },
 ]
 
-function submit() {
-  addEntry({
+async function submit() {
+  await addEntry({
     situation: answers.value[0],
     wentWell: answers.value[1],
     wasHard: answers.value[2],
     doDifferently: answers.value[3],
-    sharedWithCounsellor: false,
   })
   router.push('/reflect')
 }

@@ -44,12 +44,16 @@
           New Entry
         </RouterLink>
 
-        <div v-if="entries.length === 0" class="journal__empty">
+        <div v-if="loading" class="journal__empty">
+          <p>Loading entries…</p>
+        </div>
+
+        <div v-else-if="entries.length === 0" class="journal__empty">
           <p>No entries yet.</p>
           <p>After a real conversation, come back and log how it went.</p>
         </div>
 
-        <ul v-else class="entry-list">
+        <ul v-else-if="entries.length > 0" class="entry-list">
           <li v-for="entry in entries" :key="entry.id" class="entry-card">
             <div class="entry-card__header">
               <span class="entry-card__date">{{
@@ -105,9 +109,12 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useJournal } from '@/composables/useJournal'
 
-const { entries, deleteEntry, toggleShare } = useJournal()
+const { entries, loading, fetchEntries, deleteEntry, toggleShare } = useJournal()
+
+onMounted(fetchEntries)
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', {
