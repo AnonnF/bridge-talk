@@ -152,16 +152,25 @@ async function submitCurrentQuiz() {
       userId,
       storedAnswers.value,
     )
-    if (results.value && user.value) {
-      void supabase.from('quiz_results').insert({
-        user_id: user.value.id,
-        scenario_id: scenarioId.value,
-        clarity: results.value.averages.clarity,
-        empathy: results.value.averages.empathy,
-        appropriateness: results.value.averages.appropriateness,
-        confidence: results.value.averages.confidence,
-        safety: results.value.averages.safety,
-      })
+    if (results.value) {
+      const authUserId =
+        user.value?.id ??
+        (await supabase.auth.getSession()).data.session?.user.id
+      if (authUserId) {
+        const { error: saveError } = await supabase
+          .from('quiz_results')
+          .insert({
+            user_id: authUserId,
+            scenario_id: scenarioId.value,
+            clarity: results.value.averages.clarity,
+            empathy: results.value.averages.empathy,
+            appropriateness: results.value.averages.appropriateness,
+            confidence: results.value.averages.confidence,
+            safety: results.value.averages.safety,
+          })
+        if (saveError)
+          console.error('Failed to save quiz result:', saveError.message)
+      }
     }
   } catch {
     error.value = 'Could not load your communication profile. Please try again.'
