@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/composables/useAuth'
 import SiteHeader from '@/components/layout/SiteHeader.vue'
 
 interface JournalEntry {
@@ -14,7 +13,6 @@ interface JournalEntry {
   profiles: { display_name: string | null }
 }
 
-const { signOut } = useAuth()
 const entries = ref<JournalEntry[]>([])
 const loading = ref(true)
 
@@ -48,7 +46,6 @@ function formatDate(iso: string) {
             <h1 class="dashboard-title">Counsellor Dashboard</h1>
             <p class="dashboard-subtitle">Shared journal entries from learners</p>
           </div>
-          <button class="signout-btn" @click="signOut">Sign out</button>
         </div>
 
         <div v-if="loading" class="state-message">Loading entries…</div>
@@ -126,23 +123,6 @@ function formatDate(iso: string) {
   margin: 0;
 }
 
-.signout-btn {
-  padding: 0.5rem 1.25rem;
-  background: transparent;
-  border: 1.5px solid var(--color-radio-border);
-  border-radius: var(--radius-pill);
-  font-size: 0.875rem;
-  font-family: var(--font-sans);
-  color: var(--color-text);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.signout-btn:hover {
-  border-color: var(--color-text-strong);
-  color: var(--color-text-strong);
-}
 
 .state-message {
   color: var(--color-text);
