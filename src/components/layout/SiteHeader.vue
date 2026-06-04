@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 const { profile, signOut } = useAuth()
 const router = useRouter()
 const open = ref(false)
+const isCounsellor = computed(() => profile.value?.role === 'counsellor')
 
 async function handleSignOut() {
   open.value = false
@@ -19,8 +20,13 @@ async function handleSignOut() {
     <div class="site-header__inner">
       <RouterLink to="/" class="logo">BridgeTalk</RouterLink>
       <nav class="site-nav">
-        <RouterLink to="/learn" class="site-nav__link">Learn</RouterLink>
-        <RouterLink to="/reflect" class="site-nav__link">Journal</RouterLink>
+        <template v-if="isCounsellor">
+          <RouterLink to="/counsellor" class="site-nav__link">Dashboard</RouterLink>
+        </template>
+        <template v-else>
+          <RouterLink to="/learn" class="site-nav__link">Learn</RouterLink>
+          <RouterLink to="/reflect" class="site-nav__link">Journal</RouterLink>
+        </template>
       </nav>
 
       <div class="avatar-wrapper">

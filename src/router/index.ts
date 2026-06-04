@@ -11,30 +11,30 @@ export const router = createRouter({
   routes: [
     { path: '/login', name: 'login', component: LoginPage },
     { path: '/signup', name: 'signup', component: SignupPage },
-    { path: '/', name: 'home', component: HomePage, meta: { requiresAuth: true } },
+    { path: '/', name: 'home', component: HomePage, meta: { requiresAuth: true, requiresRole: 'user' } },
     {
       path: '/learn',
       name: 'learn',
       component: PracticePage,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresRole: 'user' },
     },
     {
       path: '/learn/:scenarioId',
       name: 'scenario-quiz',
       component: ScenarioQuizPage,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresRole: 'user' },
     },
     {
       path: '/reflect',
       name: 'reflect',
       component: () => import('@/views/ReflectView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresRole: 'user' },
     },
     {
       path: '/reflect/new',
       name: 'reflect-new',
       component: () => import('@/views/ReflectNewView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresRole: 'user' },
     },
     {
       path: '/counsellor',
@@ -62,8 +62,9 @@ router.beforeEach(async (to) => {
       .eq('id', session.user.id)
       .single()
 
-    if (!profile || profile.role !== to.meta.requiresRole) {
-      return { name: 'home' }
+    const role = profile?.role
+    if (role !== to.meta.requiresRole) {
+      return role === 'counsellor' ? { name: 'counsellor-dashboard' } : { name: 'home' }
     }
   }
 
