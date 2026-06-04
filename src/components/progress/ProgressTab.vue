@@ -80,7 +80,6 @@ async function refetch() {
 }
 
 onMounted(refetch)
-defineExpose({ refetch })
 
 const hasResults = computed(() => scenarioProgress.value.length > 0)
 
