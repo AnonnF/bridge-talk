@@ -112,7 +112,8 @@
 import { onMounted } from 'vue'
 import { useJournal } from '@/composables/useJournal'
 
-const { entries, loading, fetchEntries, deleteEntry, toggleShare } = useJournal()
+const { entries, loading, fetchEntries, deleteEntry, toggleShare } =
+  useJournal()
 
 onMounted(fetchEntries)
 

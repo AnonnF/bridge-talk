@@ -11,8 +11,17 @@ export const router = createRouter({
   routes: [
     { path: '/login', name: 'login', component: LoginPage },
     { path: '/signup', name: 'signup', component: SignupPage },
-    { path: '/forgot-password', name: 'forgot-password', component: () => import('@/views/ForgotPasswordPage.vue') },
-    { path: '/', name: 'home', component: HomePage, meta: { requiresAuth: true, requiresRole: 'user' } },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('@/views/ForgotPasswordPage.vue'),
+    },
+    {
+      path: '/',
+      name: 'home',
+      component: HomePage,
+      meta: { requiresAuth: true, requiresRole: 'user' },
+    },
     {
       path: '/learn',
       name: 'learn',
@@ -56,7 +65,9 @@ router.beforeEach(async (to) => {
   // Redirect authenticated users away from login/signup
   if (to.name === 'login' || to.name === 'signup') {
     if (isAuthed) {
-      return role === 'counsellor' ? { name: 'counsellor-dashboard' } : { name: 'home' }
+      return role === 'counsellor'
+        ? { name: 'counsellor-dashboard' }
+        : { name: 'home' }
     }
     return true
   }
@@ -66,7 +77,9 @@ router.beforeEach(async (to) => {
   if (!isAuthed) return { name: 'login' }
 
   if (to.meta.requiresRole && role !== to.meta.requiresRole) {
-    return role === 'counsellor' ? { name: 'counsellor-dashboard' } : { name: 'home' }
+    return role === 'counsellor'
+      ? { name: 'counsellor-dashboard' }
+      : { name: 'home' }
   }
 
   return true

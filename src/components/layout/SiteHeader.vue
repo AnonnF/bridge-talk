@@ -21,7 +21,9 @@ async function handleSignOut() {
       <RouterLink to="/" class="logo">BridgeTalk</RouterLink>
       <nav class="site-nav">
         <template v-if="isCounsellor">
-          <RouterLink to="/counsellor" class="site-nav__link">Dashboard</RouterLink>
+          <RouterLink to="/counsellor" class="site-nav__link"
+            >Dashboard</RouterLink
+          >
         </template>
         <template v-else>
           <RouterLink to="/learn" class="site-nav__link">Learn</RouterLink>
@@ -54,7 +56,11 @@ async function handleSignOut() {
           <p v-if="profile?.display_name" class="avatar-dropdown__name">
             {{ profile.display_name }}
           </p>
-          <button class="avatar-dropdown__signout" role="menuitem" @click="handleSignOut">
+          <button
+            class="avatar-dropdown__signout"
+            role="menuitem"
+            @click="handleSignOut"
+          >
             Sign out
           </button>
         </div>
@@ -176,7 +182,9 @@ async function handleSignOut() {
   font-family: var(--font-sans);
   color: var(--color-text);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .avatar-dropdown__signout:hover {

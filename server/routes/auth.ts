@@ -54,7 +54,7 @@ export function createAuthRouter() {
       }
 
       res.json({ userId: data.user.id })
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Server configuration error' })
     }
   })

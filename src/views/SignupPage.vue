@@ -38,7 +38,8 @@ async function handleSubmit() {
     }
     router.push({ name: 'login', query: { registered: '1' } })
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Sign up failed. Please try again.'
+    error.value =
+      e instanceof Error ? e.message : 'Sign up failed. Please try again.'
   } finally {
     submitting.value = false
   }
@@ -124,7 +125,9 @@ async function signUpCounsellor() {
           </div>
 
           <div class="form-field">
-            <label for="confirmPassword" class="form-label">Confirm password</label>
+            <label for="confirmPassword" class="form-label"
+              >Confirm password</label
+            >
             <input
               id="confirmPassword"
               v-model="confirmPassword"
@@ -139,18 +142,35 @@ async function signUpCounsellor() {
           <div class="form-field">
             <span class="form-label">I am a…</span>
             <div class="role-options">
-              <label class="role-option" :class="{ 'role-option--active': role === 'user' }">
-                <input v-model="role" type="radio" value="user" class="role-radio" />
+              <label
+                class="role-option"
+                :class="{ 'role-option--active': role === 'user' }"
+              >
+                <input
+                  v-model="role"
+                  type="radio"
+                  value="user"
+                  class="role-radio"
+                />
                 <span class="role-option__title">Learner</span>
-                <span class="role-option__desc">Practise communication skills</span>
+                <span class="role-option__desc"
+                  >Practise communication skills</span
+                >
               </label>
               <label
                 class="role-option"
                 :class="{ 'role-option--active': role === 'counsellor' }"
               >
-                <input v-model="role" type="radio" value="counsellor" class="role-radio" />
+                <input
+                  v-model="role"
+                  type="radio"
+                  value="counsellor"
+                  class="role-radio"
+                />
                 <span class="role-option__title">Counsellor</span>
-                <span class="role-option__desc">Support and review learners</span>
+                <span class="role-option__desc"
+                  >Support and review learners</span
+                >
               </label>
             </div>
           </div>
@@ -166,7 +186,9 @@ async function signUpCounsellor() {
               autocomplete="off"
               required
             />
-            <span class="form-hint">Contact your administrator for the invite code.</span>
+            <span class="form-hint"
+              >Contact your administrator for the invite code.</span
+            >
           </div>
 
           <p v-if="error" class="form-error" role="alert">{{ error }}</p>
@@ -278,7 +300,9 @@ async function signUpCounsellor() {
   border: 1.5px solid var(--color-radio-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .role-option--active {

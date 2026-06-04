@@ -35,7 +35,9 @@ export function useJournal() {
     loading.value = false
   }
 
-  async function addEntry(entry: Omit<JournalEntry, 'id' | 'createdAt' | 'sharedWithCounsellor'>) {
+  async function addEntry(
+    entry: Omit<JournalEntry, 'id' | 'createdAt' | 'sharedWithCounsellor'>,
+  ) {
     if (!user.value) return
     const { data, error } = await supabase
       .from('journal_entries')

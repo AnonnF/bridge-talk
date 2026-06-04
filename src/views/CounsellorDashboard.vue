@@ -19,7 +19,9 @@ const loading = ref(true)
 onMounted(async () => {
   const { data } = await supabase
     .from('journal_entries')
-    .select('id, situation, went_well, was_hard, do_differently, created_at, profiles(display_name)')
+    .select(
+      'id, situation, went_well, was_hard, do_differently, created_at, profiles(display_name)',
+    )
     .eq('shared_with_counsellor', true)
     .order('created_at', { ascending: false })
   entries.value = (data as unknown as JournalEntry[]) ?? []
@@ -44,7 +46,9 @@ function formatDate(iso: string) {
         <div class="dashboard-header">
           <div>
             <h1 class="dashboard-title">Counsellor Dashboard</h1>
-            <p class="dashboard-subtitle">Shared journal entries from learners</p>
+            <p class="dashboard-subtitle">
+              Shared journal entries from learners
+            </p>
           </div>
         </div>
 
@@ -57,7 +61,9 @@ function formatDate(iso: string) {
         <ul v-else class="entry-list">
           <li v-for="entry in entries" :key="entry.id" class="entry-card">
             <div class="entry-meta">
-              <span class="entry-author">{{ entry.profiles?.display_name ?? 'Anonymous' }}</span>
+              <span class="entry-author">{{
+                entry.profiles?.display_name ?? 'Anonymous'
+              }}</span>
               <span class="entry-date">{{ formatDate(entry.created_at) }}</span>
             </div>
 
@@ -122,7 +128,6 @@ function formatDate(iso: string) {
   color: var(--color-text);
   margin: 0;
 }
-
 
 .state-message {
   color: var(--color-text);

@@ -26,7 +26,8 @@ async function handleSubmit() {
       router.push({ name: 'home' })
     }
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Login failed. Please try again.'
+    error.value =
+      e instanceof Error ? e.message : 'Login failed. Please try again.'
   } finally {
     submitting.value = false
   }
@@ -72,7 +73,9 @@ async function handleSubmit() {
           <p v-if="error" class="form-error" role="alert">{{ error }}</p>
 
           <div class="form-footer">
-            <RouterLink to="/forgot-password" class="forgot-link">Forgot password?</RouterLink>
+            <RouterLink to="/forgot-password" class="forgot-link"
+              >Forgot password?</RouterLink
+            >
           </div>
 
           <button type="submit" class="login-btn" :disabled="submitting">

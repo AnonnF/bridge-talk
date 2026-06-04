@@ -180,12 +180,12 @@ Vercel builds and hosts the site from GitHub. GitHub Actions CI and Vercel deplo
 
 **Question bank API on Vercel:** The Express app in `server/` is deployed as a serverless function at `/api` (see [`api/index.ts`](api/index.ts)). The production frontend calls `/api/...` on the same host — you do **not** need `VITE_API_BASE_URL` unless the API is hosted elsewhere.
 
-| Variable               | When                      | Value                                                                        |
-| ---------------------- | ------------------------- | ---------------------------------------------------------------------------- |
-| `VITE_API_BASE_URL`    | Local dev only (optional) | `http://localhost:3001` — see [`.env.development`](.env.development)         |
-| `CORS_ORIGIN`          | Optional                  | Override API CORS origin (defaults to Vercel URL or `http://localhost:5173`) |
-| `VITE_SUPABASE_URL`    | **Required**              | Your Supabase project URL — set in Vercel dashboard for production           |
-| `VITE_SUPABASE_ANON_KEY` | **Required**            | Your Supabase publishable key — set in Vercel dashboard for production       |
+| Variable                 | When                      | Value                                                                        |
+| ------------------------ | ------------------------- | ---------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL`      | Local dev only (optional) | `http://localhost:3001` — see [`.env.development`](.env.development)         |
+| `CORS_ORIGIN`            | Optional                  | Override API CORS origin (defaults to Vercel URL or `http://localhost:5173`) |
+| `VITE_SUPABASE_URL`      | **Required**              | Your Supabase project URL — set in Vercel dashboard for production           |
+| `VITE_SUPABASE_ANON_KEY` | **Required**              | Your Supabase publishable key — set in Vercel dashboard for production       |
 
 ### Branch behavior
 
