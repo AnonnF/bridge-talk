@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
-const { profile, signOut } = useAuth()
+const { user, profile, signOut } = useAuth()
 const router = useRouter()
 const open = ref(false)
 const isCounsellor = computed(() => profile.value?.role === 'counsellor')
@@ -31,7 +31,7 @@ async function handleSignOut() {
         </template>
       </nav>
 
-      <div class="avatar-wrapper">
+      <div v-if="user" class="avatar-wrapper">
         <button
           class="site-header__avatar"
           :aria-expanded="open"
