@@ -39,8 +39,8 @@ function avgScore(attempt: Attempt): number {
 }
 
 const W = 480
-const H = 160
-const PAD = { top: 12, right: 16, bottom: 28, left: 28 }
+const H = 176
+const PAD = { top: 12, right: 16, bottom: 44, left: 28 }
 const chartW = W - PAD.left - PAD.right
 const chartH = H - PAD.top - PAD.bottom
 
@@ -114,7 +114,7 @@ const xLabels = computed(() => {
         v-for="n in xLabels"
         :key="n"
         :x="xPos(n - 1)"
-        :y="H - 4"
+        :y="H - 22"
         class="axis-label"
         text-anchor="middle"
       >
@@ -124,7 +124,7 @@ const xLabels = computed(() => {
       <!-- X axis title -->
       <text
         :x="PAD.left + chartW / 2"
-        :y="H + 2"
+        :y="H - 8"
         class="axis-title"
         text-anchor="middle"
       >

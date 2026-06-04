@@ -9,8 +9,8 @@ interface Attempt {
 const props = defineProps<{ attempts: Attempt[] }>()
 
 const W = 480
-const H = 160
-const PAD = { top: 12, right: 16, bottom: 28, left: 28 }
+const H = 176
+const PAD = { top: 12, right: 16, bottom: 44, left: 28 }
 const chartW = W - PAD.left - PAD.right
 const chartH = H - PAD.top - PAD.bottom
 
@@ -40,19 +40,12 @@ function polyline(key: DimensionKey): string {
 
 const yGridLines = [0, 1, 2, 3, 4, 5]
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-  })
-}
-
-// Show at most 5 date labels evenly spread to avoid crowding
-function xLabelIndices(): number[] {
+// Show at most 5 attempt labels evenly spread to avoid crowding
+function xLabels(): number[] {
   const n = props.attempts.length
-  if (n <= 5) return Array.from({ length: n }, (_, i) => i)
+  if (n <= 5) return Array.from({ length: n }, (_, i) => i + 1)
   const step = (n - 1) / 4
-  return [0, 1, 2, 3, 4].map((i) => Math.round(i * step))
+  return [0, 1, 2, 3, 4].map((i) => Math.round(i * step) + 1)
 }
 </script>
 
@@ -91,19 +84,29 @@ function xLabelIndices(): number[] {
         </text>
       </g>
 
-      <!-- X axis date labels -->
+      <!-- X axis attempt labels -->
       <g class="x-labels">
         <text
-          v-for="i in xLabelIndices()"
-          :key="i"
-          :x="xPos(i)"
-          :y="H - 4"
+          v-for="n in xLabels()"
+          :key="n"
+          :x="xPos(n - 1)"
+          :y="H - 22"
           class="axis-label"
           text-anchor="middle"
         >
-          {{ formatDate(attempts[i].completedAt) }}
+          {{ n }}
         </text>
       </g>
+
+      <!-- X axis title -->
+      <text
+        :x="PAD.left + chartW / 2"
+        :y="H - 8"
+        class="axis-title"
+        text-anchor="middle"
+      >
+        attempt
+      </text>
 
       <!-- Dimension lines -->
       <g v-for="dim in DIMENSIONS" :key="dim.key">
@@ -159,6 +162,13 @@ function xLabelIndices(): number[] {
   font-family: var(--font-sans);
   font-size: 9px;
   fill: var(--color-text);
+}
+
+.axis-title {
+  font-family: var(--font-sans);
+  font-size: 8px;
+  fill: var(--color-text);
+  opacity: 0.6;
 }
 
 .legend {
