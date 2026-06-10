@@ -6,9 +6,11 @@ import DimensionLineChart from '@/components/progress/DimensionLineChart.vue'
 import CombinedProgressChart from '@/components/progress/CombinedProgressChart.vue'
 import { getScenarios } from '@/services/questionBankApi'
 import {
-  DIMENSION_DESCRIPTIONS,
   DIMENSION_LABELS,
+  formatScore,
   getScoreBand,
+  SCORE_BANDS,
+  scoreBandRangeLabel,
   type DimensionKey,
 } from '@/types/questionBank'
 
@@ -177,6 +179,63 @@ const dimensionKeys: DimensionKey[] = [
 
 function scoreLabel(score: number): string {
   return getScoreBand(score).label
+}
+
+function average(scores: number[]): number {
+  if (scores.length === 0) return 0
+  return scores.reduce((sum, score) => sum + score, 0) / scores.length
+}
+
+function latestOverallScore(learner: LearnerProgress): number {
+  return average(learner.scenarios.map((scenario) => scenario.latestAvg))
+}
+
+function latestDimensionAverages(
+  learner: LearnerProgress,
+): Record<DimensionKey, number> {
+  const averages = {} as Record<DimensionKey, number>
+  for (const key of dimensionKeys) {
+    const scores: number[] = []
+    for (const scenario of learner.scenarios) {
+      const latest = scenario.attempts[scenario.attempts.length - 1]
+      if (latest) scores.push(latest.scores[key])
+    }
+    averages[key] = average(scores)
+  }
+  return averages
+}
+
+function weakestDimensionLabel(learner: LearnerProgress): string {
+  const averages = latestDimensionAverages(learner)
+  const weakest = dimensionKeys.reduce((lowest, key) =>
+    averages[key] < averages[lowest] ? key : lowest,
+  )
+  return DIMENSION_LABELS[weakest]
+}
+
+function improvingDimensionLabel(learner: LearnerProgress): string {
+  let bestKey: DimensionKey | null = null
+  let bestDelta = 0
+
+  for (const key of dimensionKeys) {
+    const deltas = learner.scenarios
+      .filter((scenario) => scenario.attempts.length > 1)
+      .map((scenario) => {
+        const first = scenario.attempts[0].scores[key]
+        const latest =
+          scenario.attempts[scenario.attempts.length - 1].scores[key]
+        return latest - first
+      })
+
+    const delta = average(deltas)
+    if (delta > bestDelta) {
+      bestDelta = delta
+      bestKey = key
+    }
+  }
+
+  if (!bestKey || bestDelta < 0.05) return 'Not enough attempts yet'
+  return `${DIMENSION_LABELS[bestKey]} (+${formatScore(bestDelta)})`
 }
 
 function formatLearnerName(name: string | null | undefined): string {
@@ -428,18 +487,18 @@ function attemptLabel(n: number) {
                   How scores work
                 </h2>
                 <p class="progress-guide__text">
-                  Scores are out of 5. Overall scores show the learner's
-                  average across five communication dimensions.
+                  Scores are out of 5. Overall scores show the learner's average
+                  across five communication dimensions.
                 </p>
               </div>
-              <dl class="progress-guide__dimensions">
+              <dl class="progress-guide__scale" aria-label="Score scale">
                 <div
-                  v-for="key in dimensionKeys"
-                  :key="key"
-                  class="progress-guide__dimension"
+                  v-for="band in SCORE_BANDS"
+                  :key="band.label"
+                  class="progress-guide__band"
                 >
-                  <dt>{{ DIMENSION_LABELS[key] }}</dt>
-                  <dd>{{ DIMENSION_DESCRIPTIONS[key] }}</dd>
+                  <dt>{{ band.label }}</dt>
+                  <dd>{{ scoreBandRangeLabel(band) }}</dd>
                 </div>
               </dl>
             </section>
@@ -454,6 +513,24 @@ function attemptLabel(n: number) {
               class="learner-card"
             >
               <h2 class="learner-name">{{ learner.displayName }}</h2>
+
+              <div class="learner-summary">
+                <div class="learner-summary__item">
+                  <span class="learner-summary__label">Latest overall</span>
+                  <strong>
+                    {{ formatScore(latestOverallScore(learner)) }}/5 -
+                    {{ scoreLabel(latestOverallScore(learner)) }}
+                  </strong>
+                </div>
+                <div class="learner-summary__item">
+                  <span class="learner-summary__label">Improving in</span>
+                  <strong>{{ improvingDimensionLabel(learner) }}</strong>
+                </div>
+                <div class="learner-summary__item">
+                  <span class="learner-summary__label">Needs attention</span>
+                  <strong>{{ weakestDimensionLabel(learner) }}</strong>
+                </div>
+              </div>
 
               <div class="learner-combined">
                 <div class="scenario-toggles">
@@ -771,25 +848,25 @@ function attemptLabel(n: number) {
   color: var(--color-text);
 }
 
-.progress-guide__dimensions {
+.progress-guide__scale {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   gap: 0.75rem;
   margin: 0;
 }
 
-.progress-guide__dimension {
+.progress-guide__band {
   display: grid;
   gap: 0.125rem;
 }
 
-.progress-guide__dimension dt {
+.progress-guide__band dt {
   font-size: 0.8125rem;
   font-weight: var(--font-weight-medium);
   color: var(--color-text-strong);
 }
 
-.progress-guide__dimension dd {
+.progress-guide__band dd {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
@@ -889,6 +966,32 @@ function attemptLabel(n: number) {
   align-items: flex-end;
   gap: 0.25rem;
   flex-shrink: 0;
+}
+
+.learner-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.learner-summary__item {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--color-surface-muted);
+}
+
+.learner-summary__label {
+  font-size: 0.75rem;
+  color: var(--color-text);
+}
+
+.learner-summary__item strong {
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-strong);
 }
 
 .scenario-progress__score-row {

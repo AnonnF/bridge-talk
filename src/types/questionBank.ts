@@ -13,6 +13,7 @@ export type ScoreBand = {
   min: number
   max: number
   label: string
+  color: string
 }
 
 export type ScenarioSummary = {
@@ -88,17 +89,19 @@ export const DIMENSION_LABELS: Record<DimensionKey, string> = {
 export const DIMENSION_DESCRIPTIONS: Record<DimensionKey, string> = {
   clarity: 'How easy your message is to understand.',
   empathy: "How well you acknowledge the other person's perspective.",
-  appropriateness: 'How well your response fits the situation and relationship.',
+  appropriateness:
+    'How well your response fits the situation and relationship.',
   confidence: 'How clearly and steadily you express yourself.',
-  safety: 'How well your response avoids escalation, harm, or unnecessary risk.',
+  safety:
+    'How well your response avoids escalation, harm, or unnecessary risk.',
 }
 
 export const SCORE_BANDS: ScoreBand[] = [
-  { min: 0, max: 1.9, label: 'Needs support' },
-  { min: 2, max: 2.9, label: 'Developing' },
-  { min: 3, max: 3.9, label: 'Fair' },
-  { min: 4, max: 4.4, label: 'Strong' },
-  { min: 4.5, max: 5, label: 'Excellent' },
+  { min: 0, max: 1.9, label: 'Needs support', color: '#f6ebe8' },
+  { min: 2, max: 2.9, label: 'Developing', color: '#f7f1df' },
+  { min: 3, max: 3.9, label: 'Fair', color: '#eef2e4' },
+  { min: 4, max: 4.4, label: 'Strong', color: '#e8f1ea' },
+  { min: 4.5, max: 5, label: 'Excellent', color: '#e7f0f2' },
 ]
 
 export function getScoreBand(score: number): ScoreBand {
@@ -108,4 +111,12 @@ export function getScoreBand(score: number): ScoreBand {
       (band) => clampedScore >= band.min && clampedScore <= band.max,
     ) ?? SCORE_BANDS[SCORE_BANDS.length - 1]
   )
+}
+
+export function formatScore(score: number): string {
+  return score.toFixed(1)
+}
+
+export function scoreBandRangeLabel(band: ScoreBand): string {
+  return `${band.min}-${band.max}`
 }
