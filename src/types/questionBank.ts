@@ -9,6 +9,12 @@ export type DimensionKey =
 
 export type DimensionScores = Record<DimensionKey, number>
 
+export type ScoreBand = {
+  min: number
+  max: number
+  label: string
+}
+
 export type ScenarioSummary = {
   id: string
   title: string
@@ -77,4 +83,29 @@ export const DIMENSION_LABELS: Record<DimensionKey, string> = {
   appropriateness: 'Appropriateness',
   confidence: 'Confidence',
   safety: 'Safety',
+}
+
+export const DIMENSION_DESCRIPTIONS: Record<DimensionKey, string> = {
+  clarity: 'How easy your message is to understand.',
+  empathy: "How well you acknowledge the other person's perspective.",
+  appropriateness: 'How well your response fits the situation and relationship.',
+  confidence: 'How clearly and steadily you express yourself.',
+  safety: 'How well your response avoids escalation, harm, or unnecessary risk.',
+}
+
+export const SCORE_BANDS: ScoreBand[] = [
+  { min: 0, max: 1.9, label: 'Needs support' },
+  { min: 2, max: 2.9, label: 'Developing' },
+  { min: 3, max: 3.9, label: 'Fair' },
+  { min: 4, max: 4.4, label: 'Strong' },
+  { min: 4.5, max: 5, label: 'Excellent' },
+]
+
+export function getScoreBand(score: number): ScoreBand {
+  const clampedScore = Math.min(Math.max(score, 0), 5)
+  return (
+    SCORE_BANDS.find(
+      (band) => clampedScore >= band.min && clampedScore <= band.max,
+    ) ?? SCORE_BANDS[SCORE_BANDS.length - 1]
+  )
 }

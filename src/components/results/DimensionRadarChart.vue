@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import {
   DIMENSION_LABELS,
+  getScoreBand,
   type DimensionKey,
   type DimensionScores,
 } from '../../types/questionBank'
@@ -107,7 +108,7 @@ const chartDescription = computed(() =>
   dimensionOrder
     .map(
       (key) =>
-        `${DIMENSION_LABELS[key]} ${props.scores[key]} out of ${props.maxScore}`,
+        `${DIMENSION_LABELS[key]} ${props.scores[key]} out of ${props.maxScore}, ${getScoreBand(props.scores[key]).label}`,
     )
     .join(', '),
 )
@@ -145,7 +146,7 @@ const chartDescription = computed(() =>
 
       <path :d="dataPolygon" class="radar-chart__data" />
 
-      <g class="radar-chart__points" aria-hidden="true">
+      <g class="radar-chart__points">
         <circle
           v-for="(key, index) in dimensionOrder"
           :key="key"
@@ -153,7 +154,12 @@ const chartDescription = computed(() =>
           :cy="polarPoint(index, scores[key]).y"
           r="4"
           class="radar-chart__point"
-        />
+        >
+          <title>
+            {{ DIMENSION_LABELS[key] }}: {{ scores[key] }} out of
+            {{ maxScore }} - {{ getScoreBand(scores[key]).label }}
+          </title>
+        </circle>
       </g>
 
       <g class="radar-chart__labels">

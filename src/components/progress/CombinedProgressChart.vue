@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { DimensionKey } from '@/types/questionBank'
+import { getScoreBand, type DimensionKey } from '@/types/questionBank'
 
 interface Attempt {
   completedAt: string
@@ -68,6 +68,10 @@ function polyline(scenario: ScenarioProgress): string {
     .join(' ')
 }
 
+function scoreLabel(score: number): string {
+  return getScoreBand(score).label
+}
+
 const yGridLines = [0, 1, 2, 3, 4, 5]
 
 const xLabels = computed(() => {
@@ -76,6 +80,15 @@ const xLabels = computed(() => {
   const step = (n - 1) / 4
   return [0, 1, 2, 3, 4].map((i) => Math.round(i * step) + 1)
 })
+
+const chartDescription = computed(() =>
+  visibleScenarios.value
+    .map(
+      (scenario) =>
+        `${scenario.title} latest overall score ${scenario.latestAvg.toFixed(1)} out of 5, ${scoreLabel(scenario.latestAvg)}`,
+    )
+    .join('; '),
+)
 </script>
 
 <template>
@@ -83,7 +96,8 @@ const xLabels = computed(() => {
     <svg
       :viewBox="`0 0 ${W} ${H}`"
       class="chart-svg"
-      aria-hidden="true"
+      role="img"
+      :aria-label="`Overall progress chart. ${chartDescription}`"
       preserveAspectRatio="xMidYMid meet"
     >
       <!-- Grid -->
@@ -148,7 +162,13 @@ const xLabels = computed(() => {
           :cy="yPos(avgScore(attempt))"
           r="3.5"
           :fill="colorFor(scenarios.findIndex((s) => s.id === scenario.id))"
-        />
+        >
+          <title>
+            {{ scenario.title }}, attempt {{ j + 1 }}:
+            {{ avgScore(attempt).toFixed(1) }} out of 5 -
+            {{ scoreLabel(avgScore(attempt)) }}
+          </title>
+        </circle>
       </g>
     </svg>
 
@@ -165,7 +185,10 @@ const xLabels = computed(() => {
           :style="{ background: colorFor(scenarios.indexOf(scenario)) }"
         />
         <span class="legend-name">{{ scenario.title }}</span>
-        <span class="legend-score">{{ scenario.latestAvg.toFixed(1) }}/5</span>
+        <span class="legend-score">
+          {{ scenario.latestAvg.toFixed(1) }}/5 -
+          {{ scoreLabel(scenario.latestAvg) }}
+        </span>
       </div>
     </div>
   </div>

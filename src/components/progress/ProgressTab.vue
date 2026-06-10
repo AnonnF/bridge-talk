@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/composables/useAuth'
 import { getScenarios } from '@/services/questionBankApi'
-import type { DimensionKey } from '@/types/questionBank'
+import { getScoreBand, type DimensionKey } from '@/types/questionBank'
 import DimensionLineChart from './DimensionLineChart.vue'
 import CombinedProgressChart from './CombinedProgressChart.vue'
 
@@ -118,6 +118,10 @@ const COLORS = [
 function colorFor(index: number): string {
   return COLORS[index % COLORS.length]
 }
+
+function scoreLabel(score: number): string {
+  return getScoreBand(score).label
+}
 </script>
 
 <template>
@@ -142,6 +146,10 @@ function colorFor(index: number): string {
           <h3 class="combined-section__title">Overall progress</h3>
           <p class="combined-section__subtitle">
             Average score per attempt across all scenarios
+          </p>
+          <p class="combined-section__note">
+            Scores are out of 5. Your overall score averages clarity, empathy,
+            appropriateness, confidence, and safety.
           </p>
         </div>
 
@@ -196,14 +204,19 @@ function colorFor(index: number): string {
               </p>
             </div>
             <div class="progress-card__score">
-              <span class="progress-card__score-value">{{
-                scenario.latestAvg.toFixed(1)
-              }}</span>
-              <span class="progress-card__score-max">/5</span>
+              <div class="progress-card__score-row">
+                <span class="progress-card__score-value">{{
+                  scenario.latestAvg.toFixed(1)
+                }}</span>
+                <span class="progress-card__score-max">/5</span>
+              </div>
+              <span class="progress-card__score-label">
+                {{ scoreLabel(scenario.latestAvg) }}
+              </span>
             </div>
           </div>
 
-          <DimensionLineChart :attempts="scenario.attempts" />
+          <DimensionLineChart :attempts="scenario.attempts" show-glossary />
         </div>
       </div>
     </template>
@@ -282,6 +295,14 @@ function colorFor(index: number): string {
   margin: 0;
 }
 
+.combined-section__note {
+  max-width: 42rem;
+  font-size: 0.8125rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin: 0.25rem 0 0;
+}
+
 .scenario-toggles {
   display: flex;
   flex-wrap: wrap;
@@ -350,9 +371,16 @@ function colorFor(index: number): string {
 
 .progress-card__score {
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.progress-card__score-row {
+  display: flex;
   align-items: baseline;
   gap: 1px;
-  flex-shrink: 0;
 }
 
 .progress-card__score-value {
@@ -365,5 +393,12 @@ function colorFor(index: number): string {
 .progress-card__score-max {
   font-size: 0.875rem;
   color: var(--color-text);
+}
+
+.progress-card__score-label {
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  line-height: 1;
 }
 </style>
