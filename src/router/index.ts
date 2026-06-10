@@ -47,6 +47,12 @@ export const router = createRouter({
       meta: { requiresAuth: true, requiresRole: 'user' },
     },
     {
+      path: '/chat',
+      name: 'human-chat',
+      component: () => import('@/views/HumanChatView.vue'),
+      meta: { requiresAuth: true, requiresRole: 'user' },
+    },
+    {
       path: '/counsellor',
       name: 'counsellor-dashboard',
       component: () => import('@/views/CounsellorDashboard.vue'),
