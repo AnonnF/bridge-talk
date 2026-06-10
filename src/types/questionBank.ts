@@ -97,19 +97,25 @@ export const DIMENSION_DESCRIPTIONS: Record<DimensionKey, string> = {
 }
 
 export const SCORE_BANDS: ScoreBand[] = [
-  { min: 0, max: 1.9, label: 'Needs support', color: '#f6ebe8' },
-  { min: 2, max: 2.9, label: 'Developing', color: '#f7f1df' },
-  { min: 3, max: 3.9, label: 'Fair', color: '#eef2e4' },
-  { min: 4, max: 4.4, label: 'Strong', color: '#e8f1ea' },
+  { min: 0, max: 2, label: 'Needs support', color: '#f6ebe8' },
+  { min: 2, max: 3, label: 'Developing', color: '#f7f1df' },
+  { min: 3, max: 4, label: 'Fair', color: '#eef2e4' },
+  { min: 4, max: 4.5, label: 'Strong', color: '#e8f1ea' },
   { min: 4.5, max: 5, label: 'Excellent', color: '#e7f0f2' },
 ]
 
 export function getScoreBand(score: number): ScoreBand {
+  if (!Number.isFinite(score)) return SCORE_BANDS[0]
+
   const clampedScore = Math.min(Math.max(score, 0), 5)
   return (
-    SCORE_BANDS.find(
-      (band) => clampedScore >= band.min && clampedScore <= band.max,
-    ) ?? SCORE_BANDS[SCORE_BANDS.length - 1]
+    SCORE_BANDS.find((band, index) => {
+      const isLast = index === SCORE_BANDS.length - 1
+      return (
+        clampedScore >= band.min &&
+        (isLast ? clampedScore <= band.max : clampedScore < band.max)
+      )
+    }) ?? SCORE_BANDS[0]
   )
 }
 
