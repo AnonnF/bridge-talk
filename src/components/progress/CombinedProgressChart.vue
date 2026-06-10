@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { DimensionKey } from '@/types/questionBank'
+import { computed, ref } from 'vue'
+import {
+  DIMENSION_LABELS,
+  formatScore,
+  getScoreBand,
+  SCORE_BANDS,
+  scoreBandRangeLabel,
+  type DimensionKey,
+} from '@/types/questionBank'
 
 interface Attempt {
   completedAt: string
@@ -29,6 +36,11 @@ const COLORS = [
   '#a07848',
 ]
 
+const DIMENSION_ENTRIES = Object.entries(DIMENSION_LABELS) as [
+  DimensionKey,
+  string,
+][]
+
 function colorFor(index: number): string {
   return COLORS[index % COLORS.length]
 }
@@ -40,9 +52,14 @@ function avgScore(attempt: Attempt): number {
 
 const W = 480
 const H = 176
-const PAD = { top: 12, right: 16, bottom: 44, left: 28 }
+const PAD = { top: 12, right: 112, bottom: 44, left: 44 }
 const chartW = W - PAD.left - PAD.right
 const chartH = H - PAD.top - PAD.bottom
+const popoverWidth = 198
+const popoverHeight = 108
+const activePoint = ref<{ scenarioId: string; attemptIndex: number } | null>(
+  null,
+)
 
 const visibleScenarios = computed(() =>
   props.scenarios.filter((s) => props.visible.has(s.id)),
@@ -68,6 +85,41 @@ function polyline(scenario: ScenarioProgress): string {
     .join(' ')
 }
 
+function scoreLabel(score: number): string {
+  return getScoreBand(score).label
+}
+
+function latestAttempt(scenario: ScenarioProgress): Attempt | null {
+  return scenario.attempts[scenario.attempts.length - 1] ?? null
+}
+
+function latestX(scenario: ScenarioProgress): number {
+  return xPos(Math.max(scenario.attempts.length - 1, 0))
+}
+
+function latestY(scenario: ScenarioProgress): number {
+  const latest = latestAttempt(scenario)
+  return latest ? yPos(avgScore(latest)) : PAD.top + chartH
+}
+
+function popoverX(attemptIndex: number): number {
+  return Math.min(Math.max(xPos(attemptIndex) + 8, 4), W - popoverWidth - 4)
+}
+
+function popoverY(score: number): number {
+  return Math.min(
+    Math.max(yPos(score) - popoverHeight, 4),
+    H - popoverHeight - 4,
+  )
+}
+
+function isActivePoint(scenarioId: string, attemptIndex: number): boolean {
+  return (
+    activePoint.value?.scenarioId === scenarioId &&
+    activePoint.value.attemptIndex === attemptIndex
+  )
+}
+
 const yGridLines = [0, 1, 2, 3, 4, 5]
 
 const xLabels = computed(() => {
@@ -76,6 +128,15 @@ const xLabels = computed(() => {
   const step = (n - 1) / 4
   return [0, 1, 2, 3, 4].map((i) => Math.round(i * step) + 1)
 })
+
+const chartDescription = computed(() =>
+  visibleScenarios.value
+    .map(
+      (scenario) =>
+        `${scenario.title} latest overall score ${formatScore(scenario.latestAvg)} out of 5, ${scoreLabel(scenario.latestAvg)}`,
+    )
+    .join('; '),
+)
 </script>
 
 <template>
@@ -83,9 +144,33 @@ const xLabels = computed(() => {
     <svg
       :viewBox="`0 0 ${W} ${H}`"
       class="chart-svg"
-      aria-hidden="true"
+      role="img"
+      :aria-label="`Overall progress chart. ${chartDescription}`"
       preserveAspectRatio="xMidYMid meet"
     >
+      <!-- Score bands -->
+      <g aria-hidden="true">
+        <rect
+          v-for="band in SCORE_BANDS"
+          :key="band.label"
+          :x="PAD.left"
+          :y="yPos(band.max)"
+          :width="chartW"
+          :height="yPos(band.min) - yPos(band.max)"
+          :fill="band.color"
+          class="score-band"
+        />
+        <text
+          v-for="band in SCORE_BANDS"
+          :key="`${band.label}-label`"
+          :x="PAD.left + chartW + 8"
+          :y="yPos((band.min + band.max) / 2) + 3"
+          class="band-label"
+        >
+          {{ band.label }} {{ scoreBandRangeLabel(band) }}
+        </text>
+      </g>
+
       <!-- Grid -->
       <line
         v-for="y in yGridLines"
@@ -99,7 +184,7 @@ const xLabels = computed(() => {
 
       <!-- Y labels -->
       <text
-        v-for="y in [0, 2.5, 5]"
+        v-for="y in [1, 3, 5]"
         :key="y"
         :x="PAD.left - 6"
         :y="yPos(y) + 4"
@@ -107,6 +192,17 @@ const xLabels = computed(() => {
         text-anchor="end"
       >
         {{ y }}
+      </text>
+
+      <!-- Y axis title -->
+      <text
+        :x="12"
+        :y="PAD.top + chartH / 2"
+        class="axis-title"
+        text-anchor="middle"
+        transform="rotate(-90 12 72)"
+      >
+        score
       </text>
 
       <!-- X labels (attempt numbers) -->
@@ -141,14 +237,85 @@ const xLabels = computed(() => {
           stroke-linejoin="round"
           stroke-linecap="round"
         />
-        <circle
+        <g
           v-for="(attempt, j) in scenario.attempts"
           :key="j"
-          :cx="xPos(j)"
-          :cy="yPos(avgScore(attempt))"
-          r="3.5"
+          class="point-hit"
+          tabindex="0"
+          @mouseenter="
+            activePoint = { scenarioId: scenario.id, attemptIndex: j }
+          "
+          @mouseleave="activePoint = null"
+          @focus="activePoint = { scenarioId: scenario.id, attemptIndex: j }"
+          @blur="activePoint = null"
+        >
+          <circle
+            :cx="xPos(j)"
+            :cy="yPos(avgScore(attempt))"
+            r="3.5"
+            :fill="colorFor(scenarios.findIndex((s) => s.id === scenario.id))"
+          >
+            <title>
+              {{ scenario.title }}, attempt {{ j + 1 }}:
+              {{ formatScore(avgScore(attempt)) }} out of 5 -
+              {{ scoreLabel(avgScore(attempt)) }}
+            </title>
+          </circle>
+          <circle
+            :cx="xPos(j)"
+            :cy="yPos(avgScore(attempt))"
+            r="9"
+            class="point-hit-target"
+          />
+        </g>
+        <text
+          v-if="latestAttempt(scenario)"
+          :x="latestX(scenario) + 8"
+          :y="latestY(scenario) + 4"
           :fill="colorFor(scenarios.findIndex((s) => s.id === scenario.id))"
-        />
+          class="latest-label"
+        >
+          {{ formatScore(scenario.latestAvg) }}
+          {{ scoreLabel(scenario.latestAvg) }}
+        </text>
+      </g>
+
+      <g class="point-popover-layer">
+        <template v-for="scenario in visibleScenarios" :key="scenario.id">
+          <foreignObject
+            v-for="(attempt, j) in scenario.attempts"
+            v-show="isActivePoint(scenario.id, j)"
+            :key="j"
+            :x="popoverX(j)"
+            :y="popoverY(avgScore(attempt))"
+            :width="popoverWidth"
+            :height="popoverHeight"
+            class="point-popover"
+          >
+            <div class="point-popover__card">
+              <p class="point-popover__title">
+                {{ scenario.title }} attempt {{ j + 1 }}
+              </p>
+              <dl>
+                <div
+                  v-for="[key, label] in DIMENSION_ENTRIES"
+                  :key="key"
+                  class="point-popover__row"
+                >
+                  <dt>{{ label }}</dt>
+                  <dd>
+                    <span class="point-popover__score">
+                      {{ formatScore(attempt.scores[key]) }}/5
+                    </span>
+                    <span class="point-popover__band">
+                      {{ scoreLabel(attempt.scores[key]) }}
+                    </span>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </foreignObject>
+        </template>
       </g>
     </svg>
 
@@ -165,7 +332,10 @@ const xLabels = computed(() => {
           :style="{ background: colorFor(scenarios.indexOf(scenario)) }"
         />
         <span class="legend-name">{{ scenario.title }}</span>
-        <span class="legend-score">{{ scenario.latestAvg.toFixed(1) }}/5</span>
+        <span class="legend-score">
+          {{ formatScore(scenario.latestAvg) }}/5 -
+          {{ scoreLabel(scenario.latestAvg) }}
+        </span>
       </div>
     </div>
   </div>
@@ -173,6 +343,7 @@ const xLabels = computed(() => {
 
 <style scoped>
 .combined-chart {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -185,8 +356,12 @@ const xLabels = computed(() => {
 }
 
 .grid-line {
-  stroke: var(--color-surface-muted);
+  stroke: rgb(255 255 255 / 0.85);
   stroke-width: 1;
+}
+
+.score-band {
+  opacity: 0.72;
 }
 
 .axis-label {
@@ -200,6 +375,23 @@ const xLabels = computed(() => {
   font-size: 8px;
   fill: var(--color-text);
   opacity: 0.6;
+}
+
+.band-label {
+  font-family: var(--font-sans);
+  font-size: 7.5px;
+  fill: var(--color-text);
+  opacity: 0.78;
+}
+
+.latest-label {
+  font-family: var(--font-sans);
+  font-size: 8px;
+  font-weight: var(--font-weight-medium);
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .legend {
@@ -235,5 +427,94 @@ const xLabels = computed(() => {
   font-size: 0.75rem;
   font-weight: var(--font-weight-medium);
   color: var(--color-text-strong);
+}
+
+.point-hit {
+  outline: none;
+}
+
+.point-hit-target {
+  fill: transparent;
+  cursor: help;
+}
+
+.point-popover {
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+
+.point-popover__card {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 6px 7px;
+  border: 1px solid var(--color-surface-muted);
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.1);
+  font-family: var(--font-sans);
+}
+
+.point-popover__title {
+  margin: 0 0 4px;
+  overflow: hidden;
+  color: var(--color-text-strong);
+  font-size: 8px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-popover dl {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.point-popover__row {
+  display: grid;
+  grid-template-columns: minmax(0, 78px) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.point-popover dt,
+.point-popover dd {
+  min-width: 0;
+  font-size: 7px;
+  line-height: 1.15;
+}
+
+.point-popover dt {
+  overflow: hidden;
+  color: var(--color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-popover dd {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  justify-content: space-between;
+  gap: 4px;
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-strong);
+}
+
+.point-popover__score {
+  white-space: nowrap;
+}
+
+.point-popover__band {
+  overflow: hidden;
+  color: var(--color-text);
+  font-weight: 400;
+  opacity: 0.86;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

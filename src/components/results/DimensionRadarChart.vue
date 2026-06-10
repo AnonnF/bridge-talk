@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import {
   DIMENSION_LABELS,
+  formatScore,
+  getScoreBand,
   type DimensionKey,
   type DimensionScores,
 } from '../../types/questionBank'
@@ -31,6 +33,9 @@ const viewSize = plotSize + padding * 2
 const center = viewSize / 2
 const chartRadius = 76
 const labelRadius = 96
+const popoverWidth = 190
+const popoverHeight = 106
+const activeDimension = ref<DimensionKey | null>(null)
 
 function axisAngle(index: number): number {
   return (Math.PI * 2 * index) / dimensionOrder.length - Math.PI / 2
@@ -107,10 +112,23 @@ const chartDescription = computed(() =>
   dimensionOrder
     .map(
       (key) =>
-        `${DIMENSION_LABELS[key]} ${props.scores[key]} out of ${props.maxScore}`,
+        `${DIMENSION_LABELS[key]} ${props.scores[key]} out of ${props.maxScore}, ${getScoreBand(props.scores[key]).label}`,
     )
     .join(', '),
 )
+
+function popoverX(index: number, value: number): number {
+  const point = polarPoint(index, value)
+  return Math.min(Math.max(point.x + 8, 4), viewSize - popoverWidth - 4)
+}
+
+function popoverY(index: number, value: number): number {
+  const point = polarPoint(index, value)
+  return Math.min(
+    Math.max(point.y - popoverHeight, 4),
+    viewSize - popoverHeight - 4,
+  )
+}
 </script>
 
 <template>
@@ -145,15 +163,36 @@ const chartDescription = computed(() =>
 
       <path :d="dataPolygon" class="radar-chart__data" />
 
-      <g class="radar-chart__points" aria-hidden="true">
-        <circle
+      <g class="radar-chart__points">
+        <g
           v-for="(key, index) in dimensionOrder"
           :key="key"
-          :cx="polarPoint(index, scores[key]).x"
-          :cy="polarPoint(index, scores[key]).y"
-          r="4"
-          class="radar-chart__point"
-        />
+          class="point-hit"
+          tabindex="0"
+          @mouseenter="activeDimension = key"
+          @mouseleave="activeDimension = null"
+          @focus="activeDimension = key"
+          @blur="activeDimension = null"
+        >
+          <circle
+            :cx="polarPoint(index, scores[key]).x"
+            :cy="polarPoint(index, scores[key]).y"
+            r="4"
+            class="radar-chart__point"
+          >
+            <title>
+              Result breakdown. {{ DIMENSION_LABELS[key] }}:
+              {{ scores[key] }} out of {{ maxScore }} -
+              {{ getScoreBand(scores[key]).label }}
+            </title>
+          </circle>
+          <circle
+            :cx="polarPoint(index, scores[key]).x"
+            :cy="polarPoint(index, scores[key]).y"
+            r="10"
+            class="point-hit-target"
+          />
+        </g>
       </g>
 
       <g class="radar-chart__labels">
@@ -171,6 +210,40 @@ const chartDescription = computed(() =>
           {{ label.text }}
         </text>
       </g>
+
+      <g class="point-popover-layer">
+        <foreignObject
+          v-for="(key, index) in dimensionOrder"
+          v-show="activeDimension === key"
+          :key="key"
+          :x="popoverX(index, scores[key])"
+          :y="popoverY(index, scores[key])"
+          :width="popoverWidth"
+          :height="popoverHeight"
+          class="point-popover"
+        >
+          <div class="point-popover__card">
+            <p class="point-popover__title">Result breakdown</p>
+            <dl>
+              <div
+                v-for="metric in dimensionOrder"
+                :key="metric"
+                class="point-popover__row"
+              >
+                <dt>{{ DIMENSION_LABELS[metric] }}</dt>
+                <dd>
+                  <span class="point-popover__score">
+                    {{ formatScore(scores[metric]) }}/{{ maxScore }}
+                  </span>
+                  <span class="point-popover__band">
+                    {{ getScoreBand(scores[metric]).label }}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </foreignObject>
+      </g>
     </svg>
     <figcaption class="visually-hidden">{{ chartDescription }}</figcaption>
   </figure>
@@ -178,6 +251,7 @@ const chartDescription = computed(() =>
 
 <style scoped>
 .radar-chart {
+  position: relative;
   margin: 0;
   display: flex;
   justify-content: center;
@@ -229,5 +303,94 @@ const chartDescription = computed(() =>
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.point-hit {
+  outline: none;
+}
+
+.point-hit-target {
+  fill: transparent;
+  cursor: help;
+}
+
+.point-popover {
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+
+.point-popover__card {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 6px 7px;
+  border: 1px solid var(--color-surface-muted);
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.1);
+  font-family: var(--font-sans);
+}
+
+.point-popover__title {
+  margin: 0 0 4px;
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.1;
+  color: var(--color-text-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-popover dl {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.point-popover__row {
+  display: grid;
+  grid-template-columns: minmax(0, 78px) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.point-popover dt,
+.point-popover dd {
+  min-width: 0;
+  font-size: 7px;
+  line-height: 1.15;
+}
+
+.point-popover dt {
+  overflow: hidden;
+  color: var(--color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.point-popover dd {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  justify-content: space-between;
+  gap: 4px;
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-strong);
+}
+
+.point-popover__score {
+  white-space: nowrap;
+}
+
+.point-popover__band {
+  overflow: hidden;
+  color: var(--color-text);
+  font-weight: 400;
+  opacity: 0.86;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

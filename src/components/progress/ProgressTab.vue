@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/composables/useAuth'
 import { getScenarios } from '@/services/questionBankApi'
-import type { DimensionKey } from '@/types/questionBank'
+import { getScoreBand, type DimensionKey } from '@/types/questionBank'
 import DimensionLineChart from './DimensionLineChart.vue'
 import CombinedProgressChart from './CombinedProgressChart.vue'
 
@@ -105,6 +105,72 @@ const allVisible = computed(
   () => visibleScenarios.value.size === scenarioProgress.value.length,
 )
 
+const latestOverall = computed(() => {
+  if (scenarioProgress.value.length === 0) return 0
+  const total = scenarioProgress.value.reduce(
+    (sum, scenario) => sum + scenario.latestAvg,
+    0,
+  )
+  return total / scenarioProgress.value.length
+})
+
+const strongestScenario = computed(() =>
+  scenarioProgress.value.reduce<ScenarioProgress | null>(
+    (strongest, scenario) =>
+      !strongest || scenario.latestAvg > strongest.latestAvg
+        ? scenario
+        : strongest,
+    null,
+  ),
+)
+
+const dimensionKeys: DimensionKey[] = [
+  'clarity',
+  'empathy',
+  'appropriateness',
+  'confidence',
+  'safety',
+]
+
+const dimensionLabels: Record<DimensionKey, string> = {
+  clarity: 'clarity',
+  empathy: 'empathy',
+  appropriateness: 'appropriateness',
+  confidence: 'confidence',
+  safety: 'safety',
+}
+
+const latestDimensionAverages = computed(() => {
+  const averages = {} as Record<DimensionKey, number>
+  for (const key of dimensionKeys) {
+    const scores = scenarioProgress.value
+      .map((scenario) => scenario.attempts[scenario.attempts.length - 1])
+      .filter((attempt): attempt is Attempt => Boolean(attempt))
+      .map((attempt) => attempt.scores[key])
+    averages[key] =
+      scores.length === 0
+        ? 0
+        : scores.reduce((sum, score) => sum + score, 0) / scores.length
+  }
+  return averages
+})
+
+const focusDimension = computed(() =>
+  dimensionKeys.reduce((lowest, key) =>
+    latestDimensionAverages.value[key] < latestDimensionAverages.value[lowest]
+      ? key
+      : lowest,
+  ),
+)
+
+const overallSummary = computed(() => {
+  const strongest = strongestScenario.value
+  if (!strongest) return ''
+  const focus = focusDimension.value
+  const focusLabel = dimensionLabels[focus]
+  return `Your progress is currently ${scoreLabel(latestOverall.value).toLowerCase()} overall, with ${strongest.title} as your strongest recent scenario. For your next practice round, focus on ${focusLabel}: pause before answering, make the aim of your response explicit, and choose the option that keeps the conversation constructive.`
+})
+
 const COLORS = [
   '#5a8a72',
   '#a0685a',
@@ -117,6 +183,10 @@ const COLORS = [
 
 function colorFor(index: number): string {
   return COLORS[index % COLORS.length]
+}
+
+function scoreLabel(score: number): string {
+  return getScoreBand(score).label
 }
 </script>
 
@@ -139,10 +209,27 @@ function colorFor(index: number): string {
       <!-- Combined chart -->
       <div class="combined-section">
         <div class="combined-section__header">
-          <h3 class="combined-section__title">Overall progress</h3>
-          <p class="combined-section__subtitle">
-            Average score per attempt across all scenarios
-          </p>
+          <div class="combined-section__title-row">
+            <h3 class="combined-section__title">Overall progress</h3>
+            <span class="combined-section__badge">Overall = average</span>
+            <div class="overall-help">
+              <button
+                class="overall-help__button"
+                type="button"
+                aria-label="Show overall progress score description"
+              >
+                ?
+              </button>
+              <div class="overall-help__panel" role="tooltip">
+                <p>Average score per attempt across all scenarios.</p>
+                <p>
+                  Scores are out of 5. Your overall score averages clarity,
+                  empathy, appropriateness, confidence, and safety.
+                </p>
+              </div>
+            </div>
+          </div>
+          <p class="combined-section__summary">{{ overallSummary }}</p>
         </div>
 
         <div class="scenario-toggles">
@@ -196,10 +283,15 @@ function colorFor(index: number): string {
               </p>
             </div>
             <div class="progress-card__score">
-              <span class="progress-card__score-value">{{
-                scenario.latestAvg.toFixed(1)
-              }}</span>
-              <span class="progress-card__score-max">/5</span>
+              <div class="progress-card__score-row">
+                <span class="progress-card__score-value">{{
+                  scenario.latestAvg.toFixed(1)
+                }}</span>
+                <span class="progress-card__score-max">/5</span>
+              </div>
+              <span class="progress-card__score-label">
+                {{ scoreLabel(scenario.latestAvg) }}
+              </span>
             </div>
           </div>
 
@@ -276,10 +368,32 @@ function colorFor(index: number): string {
   margin: 0;
 }
 
-.combined-section__subtitle {
-  font-size: 0.8125rem;
+.combined-section__title-row {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.combined-section__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-medium);
   color: var(--color-text);
-  margin: 0;
+}
+
+.combined-section__summary {
+  max-width: 42rem;
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text-strong);
 }
 
 .scenario-toggles {
@@ -350,9 +464,16 @@ function colorFor(index: number): string {
 
 .progress-card__score {
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.progress-card__score-row {
+  display: flex;
   align-items: baseline;
   gap: 1px;
-  flex-shrink: 0;
 }
 
 .progress-card__score-value {
@@ -365,5 +486,77 @@ function colorFor(index: number): string {
 .progress-card__score-max {
   font-size: 0.875rem;
   color: var(--color-text);
+}
+
+.progress-card__score-label {
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.overall-help {
+  position: relative;
+}
+
+.overall-help__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border: 1px solid var(--color-radio-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--color-text-strong);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25rem;
+  text-align: center;
+  cursor: help;
+}
+
+.overall-help__button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.overall-help__panel {
+  position: absolute;
+  top: 1.625rem;
+  left: 0;
+  z-index: 3;
+  width: min(19rem, calc(100vw - 3rem));
+  padding: 0.875rem;
+  border: 1px solid var(--color-surface-muted);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-0.25rem);
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+
+.overall-help__panel p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.overall-help__panel p + p {
+  margin-top: 0.5rem;
+}
+
+.overall-help:hover .overall-help__panel,
+.overall-help:focus-within .overall-help__panel {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 </style>
