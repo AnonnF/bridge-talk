@@ -24,12 +24,11 @@ const cards = [
       'Learn communication skills through guided scenarios at your own pace.',
   },
   {
-    to: null,
+    to: '/chat',
     icon: '👥',
     iconBg: '#e8eaf6',
     title: 'Human interactions',
     description: 'Practise with peers in a safe, moderated environment.',
-    disabled: true,
   },
   {
     to: '/reflect',
@@ -81,16 +80,12 @@ const cards = [
           :key="card.title"
           :to="card.to ?? undefined"
           class="feature-card"
-          :class="{ 'feature-card--disabled': card.disabled }"
         >
           <div class="feature-card__icon" :style="{ background: card.iconBg }">
             {{ card.icon }}
           </div>
           <h2 class="feature-card__title">{{ card.title }}</h2>
           <p class="feature-card__desc">{{ card.description }}</p>
-          <span v-if="card.disabled" class="feature-card__wip"
-            >Coming soon</span
-          >
         </component>
       </div>
 
@@ -199,14 +194,9 @@ const cards = [
     transform 0.15s;
 }
 
-.feature-card:not(.feature-card--disabled):hover {
+.feature-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
-}
-
-.feature-card--disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 
 .feature-card__icon {
@@ -229,13 +219,5 @@ const cards = [
   font-size: 0.875rem;
   color: var(--color-text);
   line-height: 1.5;
-}
-
-.feature-card__wip {
-  font-size: 0.75rem;
-  color: var(--color-text);
-  background: rgba(0, 0, 0, 0.06);
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
 }
 </style>

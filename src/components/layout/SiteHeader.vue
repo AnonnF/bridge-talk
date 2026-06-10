@@ -27,6 +27,7 @@ async function handleSignOut() {
         </template>
         <template v-else>
           <RouterLink to="/learn" class="site-nav__link">Learn</RouterLink>
+          <RouterLink to="/chat" class="site-nav__link">Chat</RouterLink>
           <RouterLink to="/reflect" class="site-nav__link">Journal</RouterLink>
         </template>
       </nav>
