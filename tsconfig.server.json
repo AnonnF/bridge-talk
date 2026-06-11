@@ -5,5 +5,5 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.server.tsbuildinfo",
     "rootDir": "."
   },
-  "include": ["server/**/*.ts", "api/**/*.ts"]
+  "include": ["server/**/*.ts", "api/**/*.ts", "src/types/chat.ts"]
 }

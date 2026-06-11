@@ -47,7 +47,13 @@ Bridge Talk uses [Supabase](https://supabase.com) for authentication and persist
 
 Sign in at [supabase.com](https://supabase.com), create a new project, and wait for it to provision.
 
-### 2. Run the database schema
+### 2. Run the database migrations
+
+The versioned schema lives in [`supabase/migrations`](supabase/migrations). Run the migration files in filename order in the Supabase SQL editor or with the Supabase CLI.
+
+The first migration mirrors the original profile, journal, and quiz-result setup. The second migration adds the human chat database layer: conversations, memberships, messages, reports, RLS policies, indexes, and realtime publication for new messages.
+
+### 3. Run the database schema manually
 
 In the Supabase dashboard go to **SQL Editor → New query** and run the following blocks in order.
 

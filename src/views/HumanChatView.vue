@@ -1,127 +1,63 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
-
-type ChatParticipant = {
-  id: string
-  name: string
-  role: string
-  status: 'online' | 'away' | 'offline'
-}
-
-type ChatMessage = {
-  id: string
-  senderId: string
-  body: string
-  sentAt: string
-}
-
-type ChatThread = {
-  id: string
-  title: string
-  description: string
-  participants: ChatParticipant[]
-  unreadCount: number
-  messages: ChatMessage[]
-}
+import { supabase } from '@/lib/supabase'
+import {
+  ChatApiRequestError,
+  createChatConversation,
+  getChatConversations,
+  getChatMessages,
+  getChatParticipants,
+  markChatConversationRead,
+  reportChatMessage,
+  sendChatMessage,
+} from '@/services/chatApi'
+import type {
+  ChatConversationSummary,
+  ChatMessage,
+  ChatParticipant,
+} from '@/types/chat'
 
 const { user, profile } = useAuth()
 const draftMessage = ref('')
+const chatError = ref('')
+const loadingThreads = ref(false)
+const loadingMessages = ref(false)
+const loadingOlderMessages = ref(false)
+const creatingThread = ref(false)
+const sendingMessage = ref(false)
+const showCreateForm = ref(false)
+const loadingParticipants = ref(false)
+const participantLoadError = ref('')
+const participantOptions = ref<ChatParticipant[]>([])
+const selectedParticipantIds = ref<string[]>([])
+const newChatTitle = ref('New practice chat')
+const newChatDescription = ref(
+  'Draft a conversation before inviting another learner.',
+)
 
 const currentUserId = computed(() => user.value?.id ?? 'current-user')
 const currentDisplayName = computed(() => profile.value?.display_name ?? 'You')
 
-// TODO(chat-backend): Replace this placeholder state with conversations loaded
-// from the backend for the signed-in user.
-const threads = ref<ChatThread[]>([
-  {
-    id: 'peer-practice',
-    title: 'Peer practice room',
-    description: 'Practise everyday situations with other learners.',
-    unreadCount: 2,
-    participants: [
-      {
-        id: 'maya',
-        name: 'Maya',
-        role: 'Learner',
-        status: 'online',
-      },
-      {
-        id: 'sam',
-        name: 'Sam',
-        role: 'Learner',
-        status: 'away',
-      },
-    ],
-    messages: [
-      {
-        id: 'm1',
-        senderId: 'maya',
-        body: 'Does anyone want to practise joining a group conversation?',
-        sentAt: '09:42',
-      },
-      {
-        id: 'm2',
-        senderId: 'sam',
-        body: 'I can. I want to work on opening lines that feel natural.',
-        sentAt: '09:44',
-      },
-      {
-        id: 'm3',
-        senderId: currentUserId.value,
-        body: 'I can join for a few rounds too.',
-        sentAt: '09:46',
-      },
-    ],
-  },
-  {
-    id: 'check-in',
-    title: 'Daily check-in',
-    description: 'Share goals before a real conversation.',
-    unreadCount: 0,
-    participants: [
-      {
-        id: 'alex',
-        name: 'Alex',
-        role: 'Learner',
-        status: 'online',
-      },
-    ],
-    messages: [
-      {
-        id: 'm4',
-        senderId: 'alex',
-        body: 'Today I am going to ask one follow-up question instead of ending the conversation early.',
-        sentAt: '08:15',
-      },
-    ],
-  },
-  {
-    id: 'moderated-room',
-    title: 'Moderated support room',
-    description: 'A safer space for sensitive or difficult interactions.',
-    unreadCount: 0,
-    participants: [
-      {
-        id: 'riley',
-        name: 'Riley',
-        role: 'Peer mentor',
-        status: 'offline',
-      },
-    ],
-    messages: [
-      {
-        id: 'm5',
-        senderId: 'riley',
-        body: 'Leave a note here and a mentor can help you shape the conversation.',
-        sentAt: 'Yesterday',
-      },
-    ],
-  },
-])
+const threads = ref<ChatConversationSummary[]>([])
+const messagesByThread = ref<Record<string, ChatMessage[]>>({})
+const loadedMessagesByThread = ref<Record<string, boolean>>({})
+const nextBeforeByThread = ref<Record<string, string | null>>({})
+const reportingMessages = ref<Record<string, boolean>>({})
+const reportedMessages = ref<Record<string, boolean>>({})
+const reportErrors = ref<Record<string, string>>({})
+const activeThreadId = ref('')
+let chatMessagesChannel: ReturnType<typeof supabase.channel> | null = null
 
-const activeThreadId = ref(threads.value[0]?.id ?? '')
+type ChatMessageRow = {
+  id: string
+  conversation_id: string
+  sender_id: string
+  body: string
+  created_at: string
+  deleted_at: string | null
+}
 
 const activeThread = computed(() =>
   threads.value.find((thread) => thread.id === activeThreadId.value),
@@ -131,14 +67,20 @@ const activeParticipants = computed(
   () => activeThread.value?.participants ?? [],
 )
 
-const activeMessages = computed(() => activeThread.value?.messages ?? [])
+const activeMessages = computed(
+  () => messagesByThread.value[activeThreadId.value] ?? [],
+)
+
+const activeNextBefore = computed(
+  () => nextBeforeByThread.value[activeThreadId.value] ?? null,
+)
 
 function participantFor(senderId: string): ChatParticipant | null {
   if (senderId === currentUserId.value) {
     return {
       id: currentUserId.value,
       name: currentDisplayName.value,
-      role: 'Learner',
+      role: profile.value?.role ?? 'user',
       status: 'online',
     }
   }
@@ -148,48 +90,436 @@ function participantFor(senderId: string): ChatParticipant | null {
   )
 }
 
-function selectThread(threadId: string) {
-  activeThreadId.value = threadId
-  const thread = threads.value.find((item) => item.id === threadId)
-  if (thread) thread.unreadCount = 0
+function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ChatApiRequestError) {
+    return error.message
+  }
 
-  // TODO(chat-backend): Mark the selected conversation as read on the backend.
+  return error instanceof Error ? error.message : fallback
 }
 
-function startNewChat() {
-  const threadId = `local-thread-${Date.now()}`
-  threads.value.unshift({
-    id: threadId,
-    title: 'New practice chat',
-    description: 'Draft a conversation before backend rooms are connected.',
-    unreadCount: 0,
-    participants: [],
-    messages: [],
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function parseRealtimeMessage(value: unknown): ChatMessage | null {
+  if (!isRecord(value)) return null
+
+  const row = value as Partial<ChatMessageRow>
+  if (
+    typeof row.id !== 'string' ||
+    typeof row.conversation_id !== 'string' ||
+    typeof row.sender_id !== 'string' ||
+    typeof row.body !== 'string' ||
+    typeof row.created_at !== 'string'
+  ) {
+    return null
+  }
+
+  return {
+    id: row.id,
+    conversationId: row.conversation_id,
+    senderId: row.sender_id,
+    body: row.body,
+    createdAt: row.created_at,
+    deletedAt: typeof row.deleted_at === 'string' ? row.deleted_at : null,
+  }
+}
+
+function formatMessageTime(timestamp: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(timestamp))
+}
+
+function formatParticipantRole(participant: ChatParticipant): string {
+  return participant.role === 'counsellor' ? 'Counsellor' : 'Learner'
+}
+
+function canReportMessage(message: ChatMessage): boolean {
+  return message.senderId !== currentUserId.value
+}
+
+function isReportingMessage(messageId: string): boolean {
+  return Boolean(reportingMessages.value[messageId])
+}
+
+function reportLabelFor(messageId: string): string {
+  if (reportedMessages.value[messageId]) return 'Reported'
+  return isReportingMessage(messageId) ? 'Reporting' : 'Report'
+}
+
+function resetCreateForm() {
+  selectedParticipantIds.value = []
+  newChatTitle.value = 'New practice chat'
+  newChatDescription.value =
+    'Draft a conversation before inviting another learner.'
+}
+
+function sortMessages(messages: ChatMessage[]): ChatMessage[] {
+  return [...messages].sort(
+    (first, second) =>
+      Date.parse(first.createdAt) - Date.parse(second.createdAt),
+  )
+}
+
+function mergeMessages(
+  currentMessages: ChatMessage[],
+  incomingMessages: ChatMessage[],
+): ChatMessage[] {
+  const messagesById = new Map<string, ChatMessage>()
+
+  for (const message of currentMessages) {
+    messagesById.set(message.id, message)
+  }
+
+  for (const message of incomingMessages) {
+    messagesById.set(message.id, message)
+  }
+
+  return sortMessages([...messagesById.values()])
+}
+
+function appendMessage(message: ChatMessage): boolean {
+  const currentMessages = messagesByThread.value[message.conversationId] ?? []
+  if (currentMessages.some((item) => item.id === message.id)) {
+    return false
+  }
+
+  messagesByThread.value = {
+    ...messagesByThread.value,
+    [message.conversationId]: sortMessages([...currentMessages, message]),
+  }
+
+  return true
+}
+
+function updateThreadUnreadCount(threadId: string, unreadCount: number) {
+  threads.value = threads.value.map((thread) =>
+    thread.id === threadId ? { ...thread, unreadCount } : thread,
+  )
+}
+
+function updateThreadForMessage(
+  message: ChatMessage,
+  incrementUnread: boolean,
+) {
+  threads.value = threads.value.map((thread) => {
+    if (thread.id !== message.conversationId) return thread
+
+    return {
+      ...thread,
+      lastMessage: message,
+      updatedAt: message.createdAt,
+      unreadCount: incrementUnread
+        ? thread.unreadCount + 1
+        : thread.unreadCount,
+    }
   })
-  activeThreadId.value = threadId
-
-  // TODO(chat-backend): Replace this with room creation/invitation once the
-  // backend exposes conversation membership.
 }
 
-function sendMessage() {
+async function markActiveThreadRead(threadId: string) {
+  updateThreadUnreadCount(threadId, 0)
+
+  try {
+    await markChatConversationRead(threadId)
+  } catch (error) {
+    console.error('Failed to mark chat as read:', error)
+  }
+}
+
+function handleRealtimeMessage(message: ChatMessage) {
+  if (message.deletedAt) return
+
+  const isKnownThread = threads.value.some(
+    (thread) => thread.id === message.conversationId,
+  )
+  if (!isKnownThread) {
+    void loadThreads()
+    return
+  }
+
+  const isActiveThread = message.conversationId === activeThreadId.value
+  const isOwnMessage = message.senderId === currentUserId.value
+  const shouldIncrementUnread = !isActiveThread && !isOwnMessage
+
+  if (loadedMessagesByThread.value[message.conversationId]) {
+    appendMessage(message)
+  }
+
+  updateThreadForMessage(message, shouldIncrementUnread)
+
+  if (isActiveThread && !isOwnMessage) {
+    void markActiveThreadRead(message.conversationId)
+  }
+}
+
+async function loadMessages(threadId: string) {
+  loadingMessages.value = true
+  chatError.value = ''
+
+  try {
+    const response = await getChatMessages(threadId)
+    messagesByThread.value = {
+      ...messagesByThread.value,
+      [threadId]: response.messages,
+    }
+    nextBeforeByThread.value = {
+      ...nextBeforeByThread.value,
+      [threadId]: response.nextBefore,
+    }
+    loadedMessagesByThread.value = {
+      ...loadedMessagesByThread.value,
+      [threadId]: true,
+    }
+    await markActiveThreadRead(threadId)
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not load messages')
+  } finally {
+    loadingMessages.value = false
+  }
+}
+
+async function loadThreads() {
+  loadingThreads.value = true
+  chatError.value = ''
+
+  try {
+    const loadedThreads = await getChatConversations()
+    threads.value = loadedThreads
+
+    if (
+      !activeThreadId.value ||
+      !loadedThreads.some((thread) => thread.id === activeThreadId.value)
+    ) {
+      activeThreadId.value = loadedThreads[0]?.id ?? ''
+    }
+
+    if (activeThreadId.value) {
+      await loadMessages(activeThreadId.value)
+    }
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not load conversations')
+  } finally {
+    loadingThreads.value = false
+  }
+}
+
+async function loadOlderMessages() {
+  const threadId = activeThreadId.value
+  const before = activeNextBefore.value
+  if (!threadId || !before || loadingOlderMessages.value) return
+
+  loadingOlderMessages.value = true
+  chatError.value = ''
+
+  try {
+    const response = await getChatMessages(threadId, { before })
+    messagesByThread.value = {
+      ...messagesByThread.value,
+      [threadId]: mergeMessages(
+        messagesByThread.value[threadId] ?? [],
+        response.messages,
+      ),
+    }
+    nextBeforeByThread.value = {
+      ...nextBeforeByThread.value,
+      [threadId]: response.nextBefore,
+    }
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not load earlier messages')
+  } finally {
+    loadingOlderMessages.value = false
+  }
+}
+
+async function loadParticipants() {
+  if (participantOptions.value.length || loadingParticipants.value) return
+
+  loadingParticipants.value = true
+  participantLoadError.value = ''
+
+  try {
+    participantOptions.value = await getChatParticipants()
+  } catch (error) {
+    if (error instanceof ChatApiRequestError && error.status === 404) {
+      participantOptions.value = []
+      participantLoadError.value =
+        'Participant list is unavailable right now. You can still create a solo practice chat.'
+      return
+    }
+
+    chatError.value = errorMessage(error, 'Could not load chat participants')
+  } finally {
+    loadingParticipants.value = false
+  }
+}
+
+async function subscribeToMessages() {
+  const { data } = await supabase.auth.getSession()
+  if (data.session?.access_token) {
+    supabase.realtime.setAuth(data.session.access_token)
+  }
+
+  chatMessagesChannel = supabase
+    .channel('human-chat-messages')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'chat_messages',
+      },
+      (payload) => {
+        const message = parseRealtimeMessage(payload.new)
+        if (message) handleRealtimeMessage(message)
+      },
+    )
+    .subscribe((status) => {
+      if (status === 'CHANNEL_ERROR') {
+        chatError.value ||= 'Live chat updates are unavailable.'
+      }
+    })
+}
+
+async function selectThread(threadId: string) {
+  activeThreadId.value = threadId
+
+  if (!loadedMessagesByThread.value[threadId]) {
+    await loadMessages(threadId)
+    return
+  }
+
+  await markActiveThreadRead(threadId)
+}
+
+function toggleCreateForm() {
+  showCreateForm.value = !showCreateForm.value
+  chatError.value = ''
+  participantLoadError.value = ''
+
+  if (showCreateForm.value) {
+    void loadParticipants()
+  }
+}
+
+function cancelCreateChat() {
+  showCreateForm.value = false
+  participantLoadError.value = ''
+  resetCreateForm()
+}
+
+async function startNewChat() {
+  if (creatingThread.value) return
+
+  const title = newChatTitle.value.trim()
+  if (!title) {
+    chatError.value = 'Chat title is required'
+    return
+  }
+
+  creatingThread.value = true
+  chatError.value = ''
+
+  try {
+    const thread = await createChatConversation({
+      title,
+      description: newChatDescription.value.trim(),
+      participantIds: selectedParticipantIds.value,
+    })
+
+    threads.value = [thread, ...threads.value]
+    messagesByThread.value = {
+      ...messagesByThread.value,
+      [thread.id]: [],
+    }
+    nextBeforeByThread.value = {
+      ...nextBeforeByThread.value,
+      [thread.id]: null,
+    }
+    loadedMessagesByThread.value = {
+      ...loadedMessagesByThread.value,
+      [thread.id]: true,
+    }
+    activeThreadId.value = thread.id
+    showCreateForm.value = false
+    resetCreateForm()
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not create chat')
+  } finally {
+    creatingThread.value = false
+  }
+}
+
+async function sendMessage() {
   const body = draftMessage.value.trim()
-  if (!body || !activeThread.value) return
+  const threadId = activeThread.value?.id
+  if (!body || !threadId || sendingMessage.value) return
 
-  activeThread.value.messages.push({
-    id: `local-${Date.now()}`,
-    senderId: currentUserId.value,
-    body,
-    sentAt: new Date().toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-  })
-  draftMessage.value = ''
+  sendingMessage.value = true
+  chatError.value = ''
 
-  // TODO(chat-backend): Send this message through the real chat API or realtime
-  // channel, then replace the optimistic local message with the persisted one.
+  try {
+    const message = await sendChatMessage(threadId, { body })
+    appendMessage(message)
+    updateThreadForMessage(message, false)
+    draftMessage.value = ''
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not send message')
+  } finally {
+    sendingMessage.value = false
+  }
 }
+
+async function reportMessage(message: ChatMessage) {
+  if (
+    !canReportMessage(message) ||
+    isReportingMessage(message.id) ||
+    reportedMessages.value[message.id]
+  ) {
+    return
+  }
+
+  reportingMessages.value = {
+    ...reportingMessages.value,
+    [message.id]: true,
+  }
+  reportErrors.value = {
+    ...reportErrors.value,
+    [message.id]: '',
+  }
+
+  try {
+    await reportChatMessage(message.id)
+    reportedMessages.value = {
+      ...reportedMessages.value,
+      [message.id]: true,
+    }
+  } catch (error) {
+    reportErrors.value = {
+      ...reportErrors.value,
+      [message.id]: errorMessage(error, 'Could not report message'),
+    }
+  } finally {
+    reportingMessages.value = {
+      ...reportingMessages.value,
+      [message.id]: false,
+    }
+  }
+}
+
+onMounted(() => {
+  void loadThreads()
+  void subscribeToMessages()
+})
+
+onUnmounted(() => {
+  if (chatMessagesChannel) {
+    void supabase.removeChannel(chatMessagesChannel)
+    chatMessagesChannel = null
+  }
+})
 </script>
 
 <template>
@@ -221,7 +551,12 @@ function sendMessage() {
             <p class="chat-shell__eyebrow">Human interactions</p>
             <h1 id="chat-title">Live chat practice</h1>
           </div>
-          <button class="chat-shell__new" type="button" @click="startNewChat">
+          <button
+            class="chat-shell__new"
+            type="button"
+            :disabled="creatingThread"
+            @click="toggleCreateForm"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -235,7 +570,7 @@ function sendMessage() {
                 stroke-linecap="round"
               />
             </svg>
-            New chat
+            {{ showCreateForm ? 'Close' : 'New chat' }}
           </button>
         </div>
 
@@ -246,7 +581,89 @@ function sendMessage() {
               <span>{{ threads.length }}</span>
             </div>
 
-            <ul class="thread-list">
+            <p v-if="chatError" class="chat-state chat-state--error">
+              {{ chatError }}
+            </p>
+
+            <form
+              v-if="showCreateForm"
+              class="create-chat"
+              @submit.prevent="startNewChat"
+            >
+              <label class="create-chat__field">
+                <span>Title</span>
+                <input
+                  v-model="newChatTitle"
+                  type="text"
+                  maxlength="80"
+                  required
+                />
+              </label>
+
+              <label class="create-chat__field">
+                <span>Description</span>
+                <textarea
+                  v-model="newChatDescription"
+                  maxlength="180"
+                  rows="2"
+                />
+              </label>
+
+              <fieldset class="create-chat__participants">
+                <legend>Participants</legend>
+                <p v-if="loadingParticipants" class="create-chat__hint">
+                  Loading people...
+                </p>
+                <p v-else-if="participantLoadError" class="create-chat__hint">
+                  {{ participantLoadError }}
+                </p>
+                <p
+                  v-else-if="participantOptions.length === 0"
+                  class="create-chat__hint"
+                >
+                  No other users are available yet.
+                </p>
+                <label
+                  v-for="participant in participantOptions"
+                  v-else
+                  :key="participant.id"
+                  class="create-chat__participant"
+                >
+                  <input
+                    v-model="selectedParticipantIds"
+                    type="checkbox"
+                    :value="participant.id"
+                  />
+                  <span>
+                    {{ participant.name }}
+                    <small>{{ formatParticipantRole(participant) }}</small>
+                  </span>
+                </label>
+              </fieldset>
+
+              <div class="create-chat__actions">
+                <button
+                  class="create-chat__secondary"
+                  type="button"
+                  @click="cancelCreateChat"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="create-chat__primary"
+                  type="submit"
+                  :disabled="creatingThread || !newChatTitle.trim()"
+                >
+                  {{ creatingThread ? 'Creating' : 'Create' }}
+                </button>
+              </div>
+            </form>
+
+            <p v-if="loadingThreads" class="chat-state">
+              Loading conversations...
+            </p>
+
+            <ul v-else-if="threads.length" class="thread-list">
               <li v-for="thread in threads" :key="thread.id">
                 <button
                   class="thread-item"
@@ -276,6 +693,8 @@ function sendMessage() {
                 </button>
               </li>
             </ul>
+
+            <p v-else class="chat-state">No conversations yet.</p>
           </aside>
 
           <section
@@ -311,28 +730,76 @@ function sendMessage() {
                   :class="`participant-chip__status--${participant.status}`"
                   aria-hidden="true"
                 />
-                {{ participant.name }} · {{ participant.role }}
+                {{ participant.name }} ·
+                {{ formatParticipantRole(participant) }}
               </span>
             </div>
 
-            <ol class="message-list" aria-live="polite">
-              <li
-                v-for="message in activeMessages"
-                :key="message.id"
-                class="message-row"
-                :class="{
-                  'message-row--mine': message.senderId === currentUserId,
-                }"
+            <p v-if="loadingMessages" class="chat-state">Loading messages...</p>
+
+            <div
+              v-else-if="activeMessages.length"
+              class="message-history"
+              aria-label="Message history"
+            >
+              <button
+                v-if="activeNextBefore"
+                class="message-history__load"
+                type="button"
+                :disabled="loadingOlderMessages"
+                @click="loadOlderMessages"
               >
-                <div class="message-bubble">
-                  <span class="message-bubble__sender">
-                    {{ participantFor(message.senderId)?.name ?? 'Unknown' }}
-                  </span>
-                  <p>{{ message.body }}</p>
-                  <time>{{ message.sentAt }}</time>
-                </div>
-              </li>
-            </ol>
+                {{ loadingOlderMessages ? 'Loading' : 'Load earlier messages' }}
+              </button>
+
+              <ol class="message-list" aria-live="polite">
+                <li
+                  v-for="message in activeMessages"
+                  :key="message.id"
+                  class="message-row"
+                  :class="{
+                    'message-row--mine': message.senderId === currentUserId,
+                  }"
+                >
+                  <div class="message-bubble">
+                    <span class="message-bubble__sender">
+                      {{ participantFor(message.senderId)?.name ?? 'Unknown' }}
+                    </span>
+                    <p>{{ message.body }}</p>
+                    <time>{{ formatMessageTime(message.createdAt) }}</time>
+                    <div
+                      v-if="
+                        canReportMessage(message) ||
+                        reportedMessages[message.id] ||
+                        reportErrors[message.id]
+                      "
+                      class="message-actions"
+                    >
+                      <button
+                        v-if="canReportMessage(message)"
+                        class="message-actions__report"
+                        type="button"
+                        :disabled="
+                          isReportingMessage(message.id) ||
+                          reportedMessages[message.id]
+                        "
+                        @click="reportMessage(message)"
+                      >
+                        {{ reportLabelFor(message.id) }}
+                      </button>
+                      <span
+                        v-if="reportErrors[message.id]"
+                        class="message-actions__error"
+                      >
+                        {{ reportErrors[message.id] }}
+                      </span>
+                    </div>
+                  </div>
+                </li>
+              </ol>
+            </div>
+
+            <p v-else class="chat-state">Start the conversation below.</p>
 
             <form class="composer" @submit.prevent="sendMessage">
               <label class="composer__label" for="chat-message">
@@ -348,7 +815,9 @@ function sendMessage() {
               <button
                 class="composer__send"
                 type="submit"
-                :disabled="!draftMessage.trim()"
+                :disabled="
+                  !draftMessage.trim() || sendingMessage || loadingMessages
+                "
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -363,9 +832,13 @@ function sendMessage() {
                     stroke-linejoin="round"
                   />
                 </svg>
-                Send
+                {{ sendingMessage ? 'Sending' : 'Send' }}
               </button>
             </form>
+          </section>
+
+          <section v-else class="message-panel" aria-label="No conversation">
+            <p class="chat-state">Choose or create a conversation.</p>
           </section>
         </div>
       </section>
@@ -411,6 +884,8 @@ function sendMessage() {
 .chat-nav__back:focus-visible,
 .chat-shell__new:focus-visible,
 .thread-item:focus-visible,
+.message-history__load:focus-visible,
+.message-actions__report:focus-visible,
 .composer__input:focus-visible,
 .composer__send:focus-visible {
   outline: var(--focus-ring);
@@ -530,6 +1005,134 @@ function sendMessage() {
   padding: 0.5rem;
   overflow: auto;
   list-style: none;
+}
+
+.chat-state {
+  align-self: start;
+  margin: 1rem;
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.chat-state--error {
+  color: #8a1f11;
+}
+
+.create-chat {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(61 69 65 / 0.1);
+}
+
+.create-chat__field {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--color-text-strong);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.create-chat__field input,
+.create-chat__field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid rgb(61 69 65 / 0.2);
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: var(--color-text-strong);
+  font: inherit;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.create-chat__field textarea {
+  resize: vertical;
+}
+
+.create-chat__participants {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  max-height: 11rem;
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+  border: 0;
+}
+
+.create-chat__participants legend {
+  margin-bottom: 0.25rem;
+  color: var(--color-text-strong);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.create-chat__hint {
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.create-chat__participant {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-strong);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.create-chat__participant input {
+  flex: 0 0 auto;
+}
+
+.create-chat__participant span {
+  display: grid;
+  min-width: 0;
+}
+
+.create-chat__participant small {
+  color: var(--color-text);
+  font-size: 0.75rem;
+}
+
+.create-chat__actions {
+  display: flex;
+  justify-content: end;
+  gap: 0.5rem;
+}
+
+.create-chat__primary,
+.create-chat__secondary {
+  min-height: 2.25rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.create-chat__primary {
+  border: 0;
+  background: var(--color-btn-bg);
+  color: var(--color-btn-fg);
+}
+
+.create-chat__secondary {
+  border: 1px solid rgb(61 69 65 / 0.2);
+  background: #ffffff;
+  color: var(--color-text-strong);
+}
+
+.create-chat__primary:disabled,
+.create-chat__secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .thread-item {
@@ -693,15 +1296,41 @@ function sendMessage() {
   background: #b7791f;
 }
 
-.message-list {
+.message-history {
   display: grid;
   align-content: start;
   gap: 0.75rem;
-  margin: 0;
   padding: 1.25rem;
   overflow: auto;
-  list-style: none;
   background: #faf8f5;
+}
+
+.message-history__load {
+  justify-self: center;
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid rgb(61 69 65 / 0.16);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-text-strong);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.message-history__load:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.message-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .message-row {
@@ -742,6 +1371,44 @@ function sendMessage() {
   justify-self: end;
   color: var(--color-text);
   font-size: 0.75rem;
+}
+
+.message-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.125rem;
+}
+
+.message-actions__report {
+  min-height: 1.5rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid rgb(61 69 65 / 0.18);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.message-actions__report:hover:not(:disabled) {
+  border-color: rgb(61 69 65 / 0.32);
+  color: var(--color-text-strong);
+}
+
+.message-actions__report:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.message-actions__error {
+  color: #8a1f11;
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .composer {

@@ -1,16 +1,5 @@
 import { Router } from 'express'
-import { createClient } from '@supabase/supabase-js'
-
-function getAdminClient() {
-  const url = process.env.SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !serviceKey) {
-    throw new Error('Supabase admin credentials not configured')
-  }
-  return createClient(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
-}
+import { getAdminClient } from '../services/supabase.js'
 
 export function createAuthRouter() {
   const router = Router()
