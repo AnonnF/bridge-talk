@@ -29,6 +29,7 @@ const creatingThread = ref(false)
 const sendingMessage = ref(false)
 const showCreateForm = ref(false)
 const loadingParticipants = ref(false)
+const participantLoadError = ref('')
 const participantOptions = ref<ChatParticipant[]>([])
 const selectedParticipantIds = ref<string[]>([])
 const newChatTitle = ref('New practice chat')
@@ -337,10 +338,18 @@ async function loadParticipants() {
   if (participantOptions.value.length || loadingParticipants.value) return
 
   loadingParticipants.value = true
+  participantLoadError.value = ''
 
   try {
     participantOptions.value = await getChatParticipants()
   } catch (error) {
+    if (error instanceof ChatApiRequestError && error.status === 404) {
+      participantOptions.value = []
+      participantLoadError.value =
+        'Participant list is unavailable right now. You can still create a solo practice chat.'
+      return
+    }
+
     chatError.value = errorMessage(error, 'Could not load chat participants')
   } finally {
     loadingParticipants.value = false
@@ -388,6 +397,7 @@ async function selectThread(threadId: string) {
 function toggleCreateForm() {
   showCreateForm.value = !showCreateForm.value
   chatError.value = ''
+  participantLoadError.value = ''
 
   if (showCreateForm.value) {
     void loadParticipants()
@@ -396,6 +406,7 @@ function toggleCreateForm() {
 
 function cancelCreateChat() {
   showCreateForm.value = false
+  participantLoadError.value = ''
   resetCreateForm()
 }
 
@@ -602,6 +613,9 @@ onUnmounted(() => {
                 <legend>Participants</legend>
                 <p v-if="loadingParticipants" class="create-chat__hint">
                   Loading people...
+                </p>
+                <p v-else-if="participantLoadError" class="create-chat__hint">
+                  {{ participantLoadError }}
                 </p>
                 <p
                   v-else-if="participantOptions.length === 0"

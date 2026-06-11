@@ -20,6 +20,12 @@ export function createApp() {
   )
   app.use(express.json())
 
+  // Log incoming requests for easier debugging in local dev
+  app.use((req, _res, next) => {
+    console.log(`[API] ${req.method} ${req.originalUrl}`)
+    next()
+  })
+
   app.get('/api/health', (_req, res) => {
     res.json({ ok: true })
   })
