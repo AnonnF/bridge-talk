@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 const { user, profile, signOut } = useAuth()
 const router = useRouter()
 const open = ref(false)
-const isCounsellor = computed(() => profile.value?.role === 'counsellor')
 
 async function handleSignOut() {
   open.value = false
@@ -19,18 +18,6 @@ async function handleSignOut() {
   <header class="site-header">
     <div class="site-header__inner">
       <RouterLink to="/" class="logo">BridgeTalk</RouterLink>
-      <nav class="site-nav">
-        <template v-if="isCounsellor">
-          <RouterLink to="/counsellor" class="site-nav__link"
-            >Dashboard</RouterLink
-          >
-        </template>
-        <template v-else>
-          <RouterLink to="/learn" class="site-nav__link">Learn</RouterLink>
-          <RouterLink to="/chat" class="site-nav__link">Chat</RouterLink>
-          <RouterLink to="/reflect" class="site-nav__link">Journal</RouterLink>
-        </template>
-      </nav>
 
       <div v-if="user" class="avatar-wrapper">
         <button
@@ -104,25 +91,6 @@ async function handleSignOut() {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
   border-radius: 4px;
-}
-
-.site-nav {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.site-nav__link {
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
-  text-decoration: none;
-  transition: color 0.15s;
-}
-
-.site-nav__link:hover,
-.site-nav__link.router-link-active {
-  color: var(--color-text-strong);
 }
 
 .avatar-wrapper {
