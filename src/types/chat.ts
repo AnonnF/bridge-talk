@@ -50,6 +50,10 @@ export type ListChatConversationsResponse = {
   conversations: ChatConversationSummary[]
 }
 
+export type ListChatParticipantsResponse = {
+  participants: ChatParticipant[]
+}
+
 export type ListChatMessagesResponse = {
   messages: ChatMessage[]
   nextBefore: string | null

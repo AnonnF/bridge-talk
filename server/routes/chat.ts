@@ -5,6 +5,7 @@ import type {
   CreateChatConversationResponse,
   ListChatConversationsResponse,
   ListChatMessagesResponse,
+  ListChatParticipantsResponse,
   MarkChatConversationReadResponse,
   ReportChatMessageResponse,
   SendChatMessageResponse,
@@ -16,6 +17,7 @@ import {
   createChatConversation,
   listChatConversations,
   listChatMessages,
+  listChatParticipants,
   markChatConversationRead,
   reportChatMessage,
   sendChatMessage,
@@ -88,6 +90,16 @@ export function createChatRouter() {
     try {
       const conversations = await listChatConversations(res.locals.userId)
       const payload: ListChatConversationsResponse = { conversations }
+      res.json(payload)
+    } catch (error) {
+      sendUnknownError(res, error)
+    }
+  })
+
+  router.get('/chat/participants', async (_req, res) => {
+    try {
+      const participants = await listChatParticipants(res.locals.userId)
+      const payload: ListChatParticipantsResponse = { participants }
       res.json(payload)
     } catch (error) {
       sendUnknownError(res, error)

@@ -236,6 +236,20 @@ export async function listChatConversations(
   )
 }
 
+export async function listChatParticipants(
+  viewerId: string,
+): Promise<ChatParticipant[]> {
+  const { data, error } = await getAdminClient()
+    .from('profiles')
+    .select('id, role, display_name')
+    .neq('id', viewerId)
+    .order('display_name', { ascending: true, nullsFirst: false })
+
+  if (error) throw error
+
+  return (data as ProfileRow[]).map(toParticipant)
+}
+
 export async function createChatConversation(
   viewerId: string,
   title: string,

@@ -8,6 +8,7 @@ import {
   createChatConversation,
   getChatConversations,
   getChatMessages,
+  getChatParticipants,
   markChatConversationRead,
   sendChatMessage,
 } from '@/services/chatApi'
@@ -24,6 +25,14 @@ const loadingThreads = ref(false)
 const loadingMessages = ref(false)
 const creatingThread = ref(false)
 const sendingMessage = ref(false)
+const showCreateForm = ref(false)
+const loadingParticipants = ref(false)
+const participantOptions = ref<ChatParticipant[]>([])
+const selectedParticipantIds = ref<string[]>([])
+const newChatTitle = ref('New practice chat')
+const newChatDescription = ref(
+  'Draft a conversation before inviting another learner.',
+)
 
 const currentUserId = computed(() => user.value?.id ?? 'current-user')
 const currentDisplayName = computed(() => profile.value?.display_name ?? 'You')
@@ -111,6 +120,17 @@ function formatMessageTime(timestamp: string): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(timestamp))
+}
+
+function formatParticipantRole(participant: ChatParticipant): string {
+  return participant.role === 'counsellor' ? 'Counsellor' : 'Learner'
+}
+
+function resetCreateForm() {
+  selectedParticipantIds.value = []
+  newChatTitle.value = 'New practice chat'
+  newChatDescription.value =
+    'Draft a conversation before inviting another learner.'
 }
 
 function sortMessages(messages: ChatMessage[]): ChatMessage[] {
@@ -241,6 +261,20 @@ async function loadThreads() {
   }
 }
 
+async function loadParticipants() {
+  if (participantOptions.value.length || loadingParticipants.value) return
+
+  loadingParticipants.value = true
+
+  try {
+    participantOptions.value = await getChatParticipants()
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not load chat participants')
+  } finally {
+    loadingParticipants.value = false
+  }
+}
+
 async function subscribeToMessages() {
   const { data } = await supabase.auth.getSession()
   if (data.session?.access_token) {
@@ -279,16 +313,37 @@ async function selectThread(threadId: string) {
   await markActiveThreadRead(threadId)
 }
 
+function toggleCreateForm() {
+  showCreateForm.value = !showCreateForm.value
+  chatError.value = ''
+
+  if (showCreateForm.value) {
+    void loadParticipants()
+  }
+}
+
+function cancelCreateChat() {
+  showCreateForm.value = false
+  resetCreateForm()
+}
+
 async function startNewChat() {
   if (creatingThread.value) return
+
+  const title = newChatTitle.value.trim()
+  if (!title) {
+    chatError.value = 'Chat title is required'
+    return
+  }
 
   creatingThread.value = true
   chatError.value = ''
 
   try {
     const thread = await createChatConversation({
-      title: 'New practice chat',
-      description: 'Draft a conversation before inviting another learner.',
+      title,
+      description: newChatDescription.value.trim(),
+      participantIds: selectedParticipantIds.value,
     })
 
     threads.value = [thread, ...threads.value]
@@ -301,6 +356,8 @@ async function startNewChat() {
       [thread.id]: true,
     }
     activeThreadId.value = thread.id
+    showCreateForm.value = false
+    resetCreateForm()
   } catch (error) {
     chatError.value = errorMessage(error, 'Could not create chat')
   } finally {
@@ -374,7 +431,7 @@ onUnmounted(() => {
             class="chat-shell__new"
             type="button"
             :disabled="creatingThread"
-            @click="startNewChat"
+            @click="toggleCreateForm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -389,7 +446,7 @@ onUnmounted(() => {
                 stroke-linecap="round"
               />
             </svg>
-            {{ creatingThread ? 'Creating' : 'New chat' }}
+            {{ showCreateForm ? 'Close' : 'New chat' }}
           </button>
         </div>
 
@@ -403,6 +460,77 @@ onUnmounted(() => {
             <p v-if="chatError" class="chat-state chat-state--error">
               {{ chatError }}
             </p>
+
+            <form
+              v-if="showCreateForm"
+              class="create-chat"
+              @submit.prevent="startNewChat"
+            >
+              <label class="create-chat__field">
+                <span>Title</span>
+                <input
+                  v-model="newChatTitle"
+                  type="text"
+                  maxlength="80"
+                  required
+                />
+              </label>
+
+              <label class="create-chat__field">
+                <span>Description</span>
+                <textarea
+                  v-model="newChatDescription"
+                  maxlength="180"
+                  rows="2"
+                />
+              </label>
+
+              <fieldset class="create-chat__participants">
+                <legend>Participants</legend>
+                <p v-if="loadingParticipants" class="create-chat__hint">
+                  Loading people...
+                </p>
+                <p
+                  v-else-if="participantOptions.length === 0"
+                  class="create-chat__hint"
+                >
+                  No other users are available yet.
+                </p>
+                <label
+                  v-for="participant in participantOptions"
+                  v-else
+                  :key="participant.id"
+                  class="create-chat__participant"
+                >
+                  <input
+                    v-model="selectedParticipantIds"
+                    type="checkbox"
+                    :value="participant.id"
+                  />
+                  <span>
+                    {{ participant.name }}
+                    <small>{{ formatParticipantRole(participant) }}</small>
+                  </span>
+                </label>
+              </fieldset>
+
+              <div class="create-chat__actions">
+                <button
+                  class="create-chat__secondary"
+                  type="button"
+                  @click="cancelCreateChat"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="create-chat__primary"
+                  type="submit"
+                  :disabled="creatingThread || !newChatTitle.trim()"
+                >
+                  {{ creatingThread ? 'Creating' : 'Create' }}
+                </button>
+              </div>
+            </form>
 
             <p v-if="loadingThreads" class="chat-state">
               Loading conversations...
@@ -475,7 +603,8 @@ onUnmounted(() => {
                   :class="`participant-chip__status--${participant.status}`"
                   aria-hidden="true"
                 />
-                {{ participant.name }} · {{ participant.role }}
+                {{ participant.name }} ·
+                {{ formatParticipantRole(participant) }}
               </span>
             </div>
 
@@ -720,6 +849,122 @@ onUnmounted(() => {
 
 .chat-state--error {
   color: #8a1f11;
+}
+
+.create-chat {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(61 69 65 / 0.1);
+}
+
+.create-chat__field {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--color-text-strong);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.create-chat__field input,
+.create-chat__field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid rgb(61 69 65 / 0.2);
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: var(--color-text-strong);
+  font: inherit;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.create-chat__field textarea {
+  resize: vertical;
+}
+
+.create-chat__participants {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  max-height: 11rem;
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+  border: 0;
+}
+
+.create-chat__participants legend {
+  margin-bottom: 0.25rem;
+  color: var(--color-text-strong);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.create-chat__hint {
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.create-chat__participant {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-strong);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.create-chat__participant input {
+  flex: 0 0 auto;
+}
+
+.create-chat__participant span {
+  display: grid;
+  min-width: 0;
+}
+
+.create-chat__participant small {
+  color: var(--color-text);
+  font-size: 0.75rem;
+}
+
+.create-chat__actions {
+  display: flex;
+  justify-content: end;
+  gap: 0.5rem;
+}
+
+.create-chat__primary,
+.create-chat__secondary {
+  min-height: 2.25rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.create-chat__primary {
+  border: 0;
+  background: var(--color-btn-bg);
+  color: var(--color-btn-fg);
+}
+
+.create-chat__secondary {
+  border: 1px solid rgb(61 69 65 / 0.2);
+  background: #ffffff;
+  color: var(--color-text-strong);
+}
+
+.create-chat__primary:disabled,
+.create-chat__secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .thread-item {

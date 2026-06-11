@@ -3,11 +3,13 @@ import type {
   ChatApiError,
   ChatApiErrorCode,
   ChatConversationSummary,
+  ChatParticipant,
   ChatMessage,
   CreateChatConversationRequest,
   CreateChatConversationResponse,
   ListChatConversationsResponse,
   ListChatMessagesResponse,
+  ListChatParticipantsResponse,
   MarkChatConversationReadResponse,
   ReportChatMessageRequest,
   ReportChatMessageResponse,
@@ -163,6 +165,13 @@ export async function getChatConversations(): Promise<
     '/api/chat/conversations',
   )
   return response.conversations
+}
+
+export async function getChatParticipants(): Promise<ChatParticipant[]> {
+  const response = await chatApiFetch<ListChatParticipantsResponse>(
+    '/api/chat/participants',
+  )
+  return response.participants
 }
 
 export async function createChatConversation(
