@@ -1,127 +1,36 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
-
-type ChatParticipant = {
-  id: string
-  name: string
-  role: string
-  status: 'online' | 'away' | 'offline'
-}
-
-type ChatMessage = {
-  id: string
-  senderId: string
-  body: string
-  sentAt: string
-}
-
-type ChatThread = {
-  id: string
-  title: string
-  description: string
-  participants: ChatParticipant[]
-  unreadCount: number
-  messages: ChatMessage[]
-}
+import {
+  ChatApiRequestError,
+  createChatConversation,
+  getChatConversations,
+  getChatMessages,
+  markChatConversationRead,
+  sendChatMessage,
+} from '@/services/chatApi'
+import type {
+  ChatConversationSummary,
+  ChatMessage,
+  ChatParticipant,
+} from '@/types/chat'
 
 const { user, profile } = useAuth()
 const draftMessage = ref('')
+const chatError = ref('')
+const loadingThreads = ref(false)
+const loadingMessages = ref(false)
+const creatingThread = ref(false)
+const sendingMessage = ref(false)
 
 const currentUserId = computed(() => user.value?.id ?? 'current-user')
 const currentDisplayName = computed(() => profile.value?.display_name ?? 'You')
 
-// TODO(chat-backend): Replace this placeholder state with conversations loaded
-// from the backend for the signed-in user.
-const threads = ref<ChatThread[]>([
-  {
-    id: 'peer-practice',
-    title: 'Peer practice room',
-    description: 'Practise everyday situations with other learners.',
-    unreadCount: 2,
-    participants: [
-      {
-        id: 'maya',
-        name: 'Maya',
-        role: 'Learner',
-        status: 'online',
-      },
-      {
-        id: 'sam',
-        name: 'Sam',
-        role: 'Learner',
-        status: 'away',
-      },
-    ],
-    messages: [
-      {
-        id: 'm1',
-        senderId: 'maya',
-        body: 'Does anyone want to practise joining a group conversation?',
-        sentAt: '09:42',
-      },
-      {
-        id: 'm2',
-        senderId: 'sam',
-        body: 'I can. I want to work on opening lines that feel natural.',
-        sentAt: '09:44',
-      },
-      {
-        id: 'm3',
-        senderId: currentUserId.value,
-        body: 'I can join for a few rounds too.',
-        sentAt: '09:46',
-      },
-    ],
-  },
-  {
-    id: 'check-in',
-    title: 'Daily check-in',
-    description: 'Share goals before a real conversation.',
-    unreadCount: 0,
-    participants: [
-      {
-        id: 'alex',
-        name: 'Alex',
-        role: 'Learner',
-        status: 'online',
-      },
-    ],
-    messages: [
-      {
-        id: 'm4',
-        senderId: 'alex',
-        body: 'Today I am going to ask one follow-up question instead of ending the conversation early.',
-        sentAt: '08:15',
-      },
-    ],
-  },
-  {
-    id: 'moderated-room',
-    title: 'Moderated support room',
-    description: 'A safer space for sensitive or difficult interactions.',
-    unreadCount: 0,
-    participants: [
-      {
-        id: 'riley',
-        name: 'Riley',
-        role: 'Peer mentor',
-        status: 'offline',
-      },
-    ],
-    messages: [
-      {
-        id: 'm5',
-        senderId: 'riley',
-        body: 'Leave a note here and a mentor can help you shape the conversation.',
-        sentAt: 'Yesterday',
-      },
-    ],
-  },
-])
-
-const activeThreadId = ref(threads.value[0]?.id ?? '')
+const threads = ref<ChatConversationSummary[]>([])
+const messagesByThread = ref<Record<string, ChatMessage[]>>({})
+const loadedMessagesByThread = ref<Record<string, boolean>>({})
+const activeThreadId = ref('')
 
 const activeThread = computed(() =>
   threads.value.find((thread) => thread.id === activeThreadId.value),
@@ -131,14 +40,16 @@ const activeParticipants = computed(
   () => activeThread.value?.participants ?? [],
 )
 
-const activeMessages = computed(() => activeThread.value?.messages ?? [])
+const activeMessages = computed(
+  () => messagesByThread.value[activeThreadId.value] ?? [],
+)
 
 function participantFor(senderId: string): ChatParticipant | null {
   if (senderId === currentUserId.value) {
     return {
       id: currentUserId.value,
       name: currentDisplayName.value,
-      role: 'Learner',
+      role: profile.value?.role ?? 'user',
       status: 'online',
     }
   }
@@ -148,48 +59,149 @@ function participantFor(senderId: string): ChatParticipant | null {
   )
 }
 
-function selectThread(threadId: string) {
-  activeThreadId.value = threadId
-  const thread = threads.value.find((item) => item.id === threadId)
-  if (thread) thread.unreadCount = 0
+function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ChatApiRequestError) {
+    return error.message
+  }
 
-  // TODO(chat-backend): Mark the selected conversation as read on the backend.
+  return error instanceof Error ? error.message : fallback
 }
 
-function startNewChat() {
-  const threadId = `local-thread-${Date.now()}`
-  threads.value.unshift({
-    id: threadId,
-    title: 'New practice chat',
-    description: 'Draft a conversation before backend rooms are connected.',
-    unreadCount: 0,
-    participants: [],
-    messages: [],
-  })
-  activeThreadId.value = threadId
-
-  // TODO(chat-backend): Replace this with room creation/invitation once the
-  // backend exposes conversation membership.
+function formatMessageTime(timestamp: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(timestamp))
 }
 
-function sendMessage() {
+function updateThreadUnreadCount(threadId: string, unreadCount: number) {
+  threads.value = threads.value.map((thread) =>
+    thread.id === threadId ? { ...thread, unreadCount } : thread,
+  )
+}
+
+async function markActiveThreadRead(threadId: string) {
+  updateThreadUnreadCount(threadId, 0)
+
+  try {
+    await markChatConversationRead(threadId)
+  } catch (error) {
+    console.error('Failed to mark chat as read:', error)
+  }
+}
+
+async function loadMessages(threadId: string) {
+  loadingMessages.value = true
+  chatError.value = ''
+
+  try {
+    const response = await getChatMessages(threadId)
+    messagesByThread.value = {
+      ...messagesByThread.value,
+      [threadId]: response.messages,
+    }
+    loadedMessagesByThread.value = {
+      ...loadedMessagesByThread.value,
+      [threadId]: true,
+    }
+    await markActiveThreadRead(threadId)
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not load messages')
+  } finally {
+    loadingMessages.value = false
+  }
+}
+
+async function loadThreads() {
+  loadingThreads.value = true
+  chatError.value = ''
+
+  try {
+    const loadedThreads = await getChatConversations()
+    threads.value = loadedThreads
+
+    if (
+      !activeThreadId.value ||
+      !loadedThreads.some((thread) => thread.id === activeThreadId.value)
+    ) {
+      activeThreadId.value = loadedThreads[0]?.id ?? ''
+    }
+
+    if (activeThreadId.value) {
+      await loadMessages(activeThreadId.value)
+    }
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not load conversations')
+  } finally {
+    loadingThreads.value = false
+  }
+}
+
+async function selectThread(threadId: string) {
+  activeThreadId.value = threadId
+
+  if (!loadedMessagesByThread.value[threadId]) {
+    await loadMessages(threadId)
+    return
+  }
+
+  await markActiveThreadRead(threadId)
+}
+
+async function startNewChat() {
+  if (creatingThread.value) return
+
+  creatingThread.value = true
+  chatError.value = ''
+
+  try {
+    const thread = await createChatConversation({
+      title: 'New practice chat',
+      description: 'Draft a conversation before inviting another learner.',
+    })
+
+    threads.value = [thread, ...threads.value]
+    messagesByThread.value = {
+      ...messagesByThread.value,
+      [thread.id]: [],
+    }
+    loadedMessagesByThread.value = {
+      ...loadedMessagesByThread.value,
+      [thread.id]: true,
+    }
+    activeThreadId.value = thread.id
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not create chat')
+  } finally {
+    creatingThread.value = false
+  }
+}
+
+async function sendMessage() {
   const body = draftMessage.value.trim()
-  if (!body || !activeThread.value) return
+  const threadId = activeThread.value?.id
+  if (!body || !threadId || sendingMessage.value) return
 
-  activeThread.value.messages.push({
-    id: `local-${Date.now()}`,
-    senderId: currentUserId.value,
-    body,
-    sentAt: new Date().toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-  })
-  draftMessage.value = ''
+  sendingMessage.value = true
+  chatError.value = ''
 
-  // TODO(chat-backend): Send this message through the real chat API or realtime
-  // channel, then replace the optimistic local message with the persisted one.
+  try {
+    const message = await sendChatMessage(threadId, { body })
+    messagesByThread.value = {
+      ...messagesByThread.value,
+      [threadId]: [...(messagesByThread.value[threadId] ?? []), message],
+    }
+    draftMessage.value = ''
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not send message')
+  } finally {
+    sendingMessage.value = false
+  }
 }
+
+onMounted(() => {
+  void loadThreads()
+})
 </script>
 
 <template>
@@ -221,7 +233,12 @@ function sendMessage() {
             <p class="chat-shell__eyebrow">Human interactions</p>
             <h1 id="chat-title">Live chat practice</h1>
           </div>
-          <button class="chat-shell__new" type="button" @click="startNewChat">
+          <button
+            class="chat-shell__new"
+            type="button"
+            :disabled="creatingThread"
+            @click="startNewChat"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -235,7 +252,7 @@ function sendMessage() {
                 stroke-linecap="round"
               />
             </svg>
-            New chat
+            {{ creatingThread ? 'Creating' : 'New chat' }}
           </button>
         </div>
 
@@ -246,7 +263,15 @@ function sendMessage() {
               <span>{{ threads.length }}</span>
             </div>
 
-            <ul class="thread-list">
+            <p v-if="chatError" class="chat-state chat-state--error">
+              {{ chatError }}
+            </p>
+
+            <p v-if="loadingThreads" class="chat-state">
+              Loading conversations...
+            </p>
+
+            <ul v-else-if="threads.length" class="thread-list">
               <li v-for="thread in threads" :key="thread.id">
                 <button
                   class="thread-item"
@@ -276,6 +301,8 @@ function sendMessage() {
                 </button>
               </li>
             </ul>
+
+            <p v-else class="chat-state">No conversations yet.</p>
           </aside>
 
           <section
@@ -315,7 +342,13 @@ function sendMessage() {
               </span>
             </div>
 
-            <ol class="message-list" aria-live="polite">
+            <p v-if="loadingMessages" class="chat-state">Loading messages...</p>
+
+            <ol
+              v-else-if="activeMessages.length"
+              class="message-list"
+              aria-live="polite"
+            >
               <li
                 v-for="message in activeMessages"
                 :key="message.id"
@@ -329,10 +362,12 @@ function sendMessage() {
                     {{ participantFor(message.senderId)?.name ?? 'Unknown' }}
                   </span>
                   <p>{{ message.body }}</p>
-                  <time>{{ message.sentAt }}</time>
+                  <time>{{ formatMessageTime(message.createdAt) }}</time>
                 </div>
               </li>
             </ol>
+
+            <p v-else class="chat-state">Start the conversation below.</p>
 
             <form class="composer" @submit.prevent="sendMessage">
               <label class="composer__label" for="chat-message">
@@ -348,7 +383,9 @@ function sendMessage() {
               <button
                 class="composer__send"
                 type="submit"
-                :disabled="!draftMessage.trim()"
+                :disabled="
+                  !draftMessage.trim() || sendingMessage || loadingMessages
+                "
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -363,9 +400,13 @@ function sendMessage() {
                     stroke-linejoin="round"
                   />
                 </svg>
-                Send
+                {{ sendingMessage ? 'Sending' : 'Send' }}
               </button>
             </form>
+          </section>
+
+          <section v-else class="message-panel" aria-label="No conversation">
+            <p class="chat-state">Choose or create a conversation.</p>
           </section>
         </div>
       </section>
@@ -530,6 +571,18 @@ function sendMessage() {
   padding: 0.5rem;
   overflow: auto;
   list-style: none;
+}
+
+.chat-state {
+  align-self: start;
+  margin: 1rem;
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.chat-state--error {
+  color: #8a1f11;
 }
 
 .thread-item {
