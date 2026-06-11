@@ -86,11 +86,35 @@ function buildJsonRequest(token: string, init: RequestInit = {}): RequestInit {
   }
 }
 
+async function readResponseBody(response: Response): Promise<unknown> {
+  const contentType = response.headers.get('content-type') ?? ''
+  const rawBody = await response.text()
+
+  if (!rawBody.trim()) {
+    return null
+  }
+
+  if (contentType.includes('application/json')) {
+    return JSON.parse(rawBody) as unknown
+  }
+
+  return rawBody
+}
+
+function responsePreview(body: unknown): string | null {
+  if (typeof body !== 'string') return null
+
+  const trimmed = body.trim()
+  if (!trimmed) return null
+
+  return trimmed.slice(0, 120)
+}
+
 async function readError(response: Response): Promise<ChatApiRequestError> {
   let body: unknown = null
 
   try {
-    body = await response.json()
+    body = await readResponseBody(response)
   } catch {
     // Non-JSON failures still get wrapped into a structured client error.
   }
@@ -100,6 +124,15 @@ async function readError(response: Response): Promise<ChatApiRequestError> {
       response.status,
       body.error.code,
       body.error.message,
+    )
+  }
+
+  const preview = responsePreview(body)
+  if (preview) {
+    return new ChatApiRequestError(
+      response.status,
+      'chat_server_error',
+      `Chat API request failed: ${response.status} (${preview})`,
     )
   }
 
@@ -125,7 +158,7 @@ async function chatApiFetch<T>(
       throw await readError(response)
     }
 
-    return response.json() as Promise<T>
+    return (await readResponseBody(response)) as T
   } catch (error) {
     if (error instanceof ChatApiRequestError) {
       throw error
