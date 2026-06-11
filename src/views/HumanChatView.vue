@@ -10,6 +10,7 @@ import {
   getChatMessages,
   getChatParticipants,
   markChatConversationRead,
+  reportChatMessage,
   sendChatMessage,
 } from '@/services/chatApi'
 import type {
@@ -40,6 +41,9 @@ const currentDisplayName = computed(() => profile.value?.display_name ?? 'You')
 const threads = ref<ChatConversationSummary[]>([])
 const messagesByThread = ref<Record<string, ChatMessage[]>>({})
 const loadedMessagesByThread = ref<Record<string, boolean>>({})
+const reportingMessages = ref<Record<string, boolean>>({})
+const reportedMessages = ref<Record<string, boolean>>({})
+const reportErrors = ref<Record<string, string>>({})
 const activeThreadId = ref('')
 let chatMessagesChannel: ReturnType<typeof supabase.channel> | null = null
 
@@ -124,6 +128,19 @@ function formatMessageTime(timestamp: string): string {
 
 function formatParticipantRole(participant: ChatParticipant): string {
   return participant.role === 'counsellor' ? 'Counsellor' : 'Learner'
+}
+
+function canReportMessage(message: ChatMessage): boolean {
+  return message.senderId !== currentUserId.value
+}
+
+function isReportingMessage(messageId: string): boolean {
+  return Boolean(reportingMessages.value[messageId])
+}
+
+function reportLabelFor(messageId: string): string {
+  if (reportedMessages.value[messageId]) return 'Reported'
+  return isReportingMessage(messageId) ? 'Reporting' : 'Report'
 }
 
 function resetCreateForm() {
@@ -385,6 +402,43 @@ async function sendMessage() {
   }
 }
 
+async function reportMessage(message: ChatMessage) {
+  if (
+    !canReportMessage(message) ||
+    isReportingMessage(message.id) ||
+    reportedMessages.value[message.id]
+  ) {
+    return
+  }
+
+  reportingMessages.value = {
+    ...reportingMessages.value,
+    [message.id]: true,
+  }
+  reportErrors.value = {
+    ...reportErrors.value,
+    [message.id]: '',
+  }
+
+  try {
+    await reportChatMessage(message.id)
+    reportedMessages.value = {
+      ...reportedMessages.value,
+      [message.id]: true,
+    }
+  } catch (error) {
+    reportErrors.value = {
+      ...reportErrors.value,
+      [message.id]: errorMessage(error, 'Could not report message'),
+    }
+  } finally {
+    reportingMessages.value = {
+      ...reportingMessages.value,
+      [message.id]: false,
+    }
+  }
+}
+
 onMounted(() => {
   void loadThreads()
   void subscribeToMessages()
@@ -629,6 +683,33 @@ onUnmounted(() => {
                   </span>
                   <p>{{ message.body }}</p>
                   <time>{{ formatMessageTime(message.createdAt) }}</time>
+                  <div
+                    v-if="
+                      canReportMessage(message) ||
+                      reportedMessages[message.id] ||
+                      reportErrors[message.id]
+                    "
+                    class="message-actions"
+                  >
+                    <button
+                      v-if="canReportMessage(message)"
+                      class="message-actions__report"
+                      type="button"
+                      :disabled="
+                        isReportingMessage(message.id) ||
+                        reportedMessages[message.id]
+                      "
+                      @click="reportMessage(message)"
+                    >
+                      {{ reportLabelFor(message.id) }}
+                    </button>
+                    <span
+                      v-if="reportErrors[message.id]"
+                      class="message-actions__error"
+                    >
+                      {{ reportErrors[message.id] }}
+                    </span>
+                  </div>
                 </div>
               </li>
             </ol>
@@ -718,6 +799,7 @@ onUnmounted(() => {
 .chat-nav__back:focus-visible,
 .chat-shell__new:focus-visible,
 .thread-item:focus-visible,
+.message-actions__report:focus-visible,
 .composer__input:focus-visible,
 .composer__send:focus-visible {
   outline: var(--focus-ring);
@@ -1177,6 +1259,44 @@ onUnmounted(() => {
   justify-self: end;
   color: var(--color-text);
   font-size: 0.75rem;
+}
+
+.message-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.125rem;
+}
+
+.message-actions__report {
+  min-height: 1.5rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid rgb(61 69 65 / 0.18);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.message-actions__report:hover:not(:disabled) {
+  border-color: rgb(61 69 65 / 0.32);
+  color: var(--color-text-strong);
+}
+
+.message-actions__report:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.message-actions__error {
+  color: #8a1f11;
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .composer {
