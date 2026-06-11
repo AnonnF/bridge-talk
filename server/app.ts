@@ -1,6 +1,7 @@
 import cors from 'cors'
 import express from 'express'
 import { createAuthRouter } from './routes/auth.js'
+import { createChatRouter } from './routes/chat.js'
 import { createScenariosRouter } from './routes/scenarios.js'
 
 export function createApp() {
@@ -24,6 +25,7 @@ export function createApp() {
   })
 
   app.use('/api', createAuthRouter())
+  app.use('/api', createChatRouter())
   app.use('/api', createScenariosRouter())
 
   return app
