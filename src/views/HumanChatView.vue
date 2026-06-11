@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import { supabase } from '@/lib/supabase'
 import {
   ChatApiRequestError,
   createChatConversation,
@@ -31,6 +32,16 @@ const threads = ref<ChatConversationSummary[]>([])
 const messagesByThread = ref<Record<string, ChatMessage[]>>({})
 const loadedMessagesByThread = ref<Record<string, boolean>>({})
 const activeThreadId = ref('')
+let chatMessagesChannel: ReturnType<typeof supabase.channel> | null = null
+
+type ChatMessageRow = {
+  id: string
+  conversation_id: string
+  sender_id: string
+  body: string
+  created_at: string
+  deleted_at: string | null
+}
 
 const activeThread = computed(() =>
   threads.value.find((thread) => thread.id === activeThreadId.value),
@@ -67,6 +78,34 @@ function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function parseRealtimeMessage(value: unknown): ChatMessage | null {
+  if (!isRecord(value)) return null
+
+  const row = value as Partial<ChatMessageRow>
+  if (
+    typeof row.id !== 'string' ||
+    typeof row.conversation_id !== 'string' ||
+    typeof row.sender_id !== 'string' ||
+    typeof row.body !== 'string' ||
+    typeof row.created_at !== 'string'
+  ) {
+    return null
+  }
+
+  return {
+    id: row.id,
+    conversationId: row.conversation_id,
+    senderId: row.sender_id,
+    body: row.body,
+    createdAt: row.created_at,
+    deletedAt: typeof row.deleted_at === 'string' ? row.deleted_at : null,
+  }
+}
+
 function formatMessageTime(timestamp: string): string {
   return new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
@@ -74,10 +113,49 @@ function formatMessageTime(timestamp: string): string {
   }).format(new Date(timestamp))
 }
 
+function sortMessages(messages: ChatMessage[]): ChatMessage[] {
+  return [...messages].sort(
+    (first, second) =>
+      Date.parse(first.createdAt) - Date.parse(second.createdAt),
+  )
+}
+
+function appendMessage(message: ChatMessage): boolean {
+  const currentMessages = messagesByThread.value[message.conversationId] ?? []
+  if (currentMessages.some((item) => item.id === message.id)) {
+    return false
+  }
+
+  messagesByThread.value = {
+    ...messagesByThread.value,
+    [message.conversationId]: sortMessages([...currentMessages, message]),
+  }
+
+  return true
+}
+
 function updateThreadUnreadCount(threadId: string, unreadCount: number) {
   threads.value = threads.value.map((thread) =>
     thread.id === threadId ? { ...thread, unreadCount } : thread,
   )
+}
+
+function updateThreadForMessage(
+  message: ChatMessage,
+  incrementUnread: boolean,
+) {
+  threads.value = threads.value.map((thread) => {
+    if (thread.id !== message.conversationId) return thread
+
+    return {
+      ...thread,
+      lastMessage: message,
+      updatedAt: message.createdAt,
+      unreadCount: incrementUnread
+        ? thread.unreadCount + 1
+        : thread.unreadCount,
+    }
+  })
 }
 
 async function markActiveThreadRead(threadId: string) {
@@ -87,6 +165,32 @@ async function markActiveThreadRead(threadId: string) {
     await markChatConversationRead(threadId)
   } catch (error) {
     console.error('Failed to mark chat as read:', error)
+  }
+}
+
+function handleRealtimeMessage(message: ChatMessage) {
+  if (message.deletedAt) return
+
+  const isKnownThread = threads.value.some(
+    (thread) => thread.id === message.conversationId,
+  )
+  if (!isKnownThread) {
+    void loadThreads()
+    return
+  }
+
+  const isActiveThread = message.conversationId === activeThreadId.value
+  const isOwnMessage = message.senderId === currentUserId.value
+  const shouldIncrementUnread = !isActiveThread && !isOwnMessage
+
+  if (loadedMessagesByThread.value[message.conversationId]) {
+    appendMessage(message)
+  }
+
+  updateThreadForMessage(message, shouldIncrementUnread)
+
+  if (isActiveThread && !isOwnMessage) {
+    void markActiveThreadRead(message.conversationId)
   }
 }
 
@@ -135,6 +239,33 @@ async function loadThreads() {
   } finally {
     loadingThreads.value = false
   }
+}
+
+async function subscribeToMessages() {
+  const { data } = await supabase.auth.getSession()
+  if (data.session?.access_token) {
+    supabase.realtime.setAuth(data.session.access_token)
+  }
+
+  chatMessagesChannel = supabase
+    .channel('human-chat-messages')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'chat_messages',
+      },
+      (payload) => {
+        const message = parseRealtimeMessage(payload.new)
+        if (message) handleRealtimeMessage(message)
+      },
+    )
+    .subscribe((status) => {
+      if (status === 'CHANNEL_ERROR') {
+        chatError.value ||= 'Live chat updates are unavailable.'
+      }
+    })
 }
 
 async function selectThread(threadId: string) {
@@ -187,10 +318,8 @@ async function sendMessage() {
 
   try {
     const message = await sendChatMessage(threadId, { body })
-    messagesByThread.value = {
-      ...messagesByThread.value,
-      [threadId]: [...(messagesByThread.value[threadId] ?? []), message],
-    }
+    appendMessage(message)
+    updateThreadForMessage(message, false)
     draftMessage.value = ''
   } catch (error) {
     chatError.value = errorMessage(error, 'Could not send message')
@@ -201,6 +330,14 @@ async function sendMessage() {
 
 onMounted(() => {
   void loadThreads()
+  void subscribeToMessages()
+})
+
+onUnmounted(() => {
+  if (chatMessagesChannel) {
+    void supabase.removeChannel(chatMessagesChannel)
+    chatMessagesChannel = null
+  }
 })
 </script>
 
