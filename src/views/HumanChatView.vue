@@ -24,6 +24,7 @@ const draftMessage = ref('')
 const chatError = ref('')
 const loadingThreads = ref(false)
 const loadingMessages = ref(false)
+const loadingOlderMessages = ref(false)
 const creatingThread = ref(false)
 const sendingMessage = ref(false)
 const showCreateForm = ref(false)
@@ -41,6 +42,7 @@ const currentDisplayName = computed(() => profile.value?.display_name ?? 'You')
 const threads = ref<ChatConversationSummary[]>([])
 const messagesByThread = ref<Record<string, ChatMessage[]>>({})
 const loadedMessagesByThread = ref<Record<string, boolean>>({})
+const nextBeforeByThread = ref<Record<string, string | null>>({})
 const reportingMessages = ref<Record<string, boolean>>({})
 const reportedMessages = ref<Record<string, boolean>>({})
 const reportErrors = ref<Record<string, string>>({})
@@ -66,6 +68,10 @@ const activeParticipants = computed(
 
 const activeMessages = computed(
   () => messagesByThread.value[activeThreadId.value] ?? [],
+)
+
+const activeNextBefore = computed(
+  () => nextBeforeByThread.value[activeThreadId.value] ?? null,
 )
 
 function participantFor(senderId: string): ChatParticipant | null {
@@ -157,6 +163,23 @@ function sortMessages(messages: ChatMessage[]): ChatMessage[] {
   )
 }
 
+function mergeMessages(
+  currentMessages: ChatMessage[],
+  incomingMessages: ChatMessage[],
+): ChatMessage[] {
+  const messagesById = new Map<string, ChatMessage>()
+
+  for (const message of currentMessages) {
+    messagesById.set(message.id, message)
+  }
+
+  for (const message of incomingMessages) {
+    messagesById.set(message.id, message)
+  }
+
+  return sortMessages([...messagesById.values()])
+}
+
 function appendMessage(message: ChatMessage): boolean {
   const currentMessages = messagesByThread.value[message.conversationId] ?? []
   if (currentMessages.some((item) => item.id === message.id)) {
@@ -241,6 +264,10 @@ async function loadMessages(threadId: string) {
       ...messagesByThread.value,
       [threadId]: response.messages,
     }
+    nextBeforeByThread.value = {
+      ...nextBeforeByThread.value,
+      [threadId]: response.nextBefore,
+    }
     loadedMessagesByThread.value = {
       ...loadedMessagesByThread.value,
       [threadId]: true,
@@ -275,6 +302,34 @@ async function loadThreads() {
     chatError.value = errorMessage(error, 'Could not load conversations')
   } finally {
     loadingThreads.value = false
+  }
+}
+
+async function loadOlderMessages() {
+  const threadId = activeThreadId.value
+  const before = activeNextBefore.value
+  if (!threadId || !before || loadingOlderMessages.value) return
+
+  loadingOlderMessages.value = true
+  chatError.value = ''
+
+  try {
+    const response = await getChatMessages(threadId, { before })
+    messagesByThread.value = {
+      ...messagesByThread.value,
+      [threadId]: mergeMessages(
+        messagesByThread.value[threadId] ?? [],
+        response.messages,
+      ),
+    }
+    nextBeforeByThread.value = {
+      ...nextBeforeByThread.value,
+      [threadId]: response.nextBefore,
+    }
+  } catch (error) {
+    chatError.value = errorMessage(error, 'Could not load earlier messages')
+  } finally {
+    loadingOlderMessages.value = false
   }
 }
 
@@ -367,6 +422,10 @@ async function startNewChat() {
     messagesByThread.value = {
       ...messagesByThread.value,
       [thread.id]: [],
+    }
+    nextBeforeByThread.value = {
+      ...nextBeforeByThread.value,
+      [thread.id]: null,
     }
     loadedMessagesByThread.value = {
       ...loadedMessagesByThread.value,
@@ -664,55 +723,67 @@ onUnmounted(() => {
 
             <p v-if="loadingMessages" class="chat-state">Loading messages...</p>
 
-            <ol
+            <div
               v-else-if="activeMessages.length"
-              class="message-list"
-              aria-live="polite"
+              class="message-history"
+              aria-label="Message history"
             >
-              <li
-                v-for="message in activeMessages"
-                :key="message.id"
-                class="message-row"
-                :class="{
-                  'message-row--mine': message.senderId === currentUserId,
-                }"
+              <button
+                v-if="activeNextBefore"
+                class="message-history__load"
+                type="button"
+                :disabled="loadingOlderMessages"
+                @click="loadOlderMessages"
               >
-                <div class="message-bubble">
-                  <span class="message-bubble__sender">
-                    {{ participantFor(message.senderId)?.name ?? 'Unknown' }}
-                  </span>
-                  <p>{{ message.body }}</p>
-                  <time>{{ formatMessageTime(message.createdAt) }}</time>
-                  <div
-                    v-if="
-                      canReportMessage(message) ||
-                      reportedMessages[message.id] ||
-                      reportErrors[message.id]
-                    "
-                    class="message-actions"
-                  >
-                    <button
-                      v-if="canReportMessage(message)"
-                      class="message-actions__report"
-                      type="button"
-                      :disabled="
-                        isReportingMessage(message.id) ||
-                        reportedMessages[message.id]
-                      "
-                      @click="reportMessage(message)"
-                    >
-                      {{ reportLabelFor(message.id) }}
-                    </button>
-                    <span
-                      v-if="reportErrors[message.id]"
-                      class="message-actions__error"
-                    >
-                      {{ reportErrors[message.id] }}
+                {{ loadingOlderMessages ? 'Loading' : 'Load earlier messages' }}
+              </button>
+
+              <ol class="message-list" aria-live="polite">
+                <li
+                  v-for="message in activeMessages"
+                  :key="message.id"
+                  class="message-row"
+                  :class="{
+                    'message-row--mine': message.senderId === currentUserId,
+                  }"
+                >
+                  <div class="message-bubble">
+                    <span class="message-bubble__sender">
+                      {{ participantFor(message.senderId)?.name ?? 'Unknown' }}
                     </span>
+                    <p>{{ message.body }}</p>
+                    <time>{{ formatMessageTime(message.createdAt) }}</time>
+                    <div
+                      v-if="
+                        canReportMessage(message) ||
+                        reportedMessages[message.id] ||
+                        reportErrors[message.id]
+                      "
+                      class="message-actions"
+                    >
+                      <button
+                        v-if="canReportMessage(message)"
+                        class="message-actions__report"
+                        type="button"
+                        :disabled="
+                          isReportingMessage(message.id) ||
+                          reportedMessages[message.id]
+                        "
+                        @click="reportMessage(message)"
+                      >
+                        {{ reportLabelFor(message.id) }}
+                      </button>
+                      <span
+                        v-if="reportErrors[message.id]"
+                        class="message-actions__error"
+                      >
+                        {{ reportErrors[message.id] }}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </li>
-            </ol>
+                </li>
+              </ol>
+            </div>
 
             <p v-else class="chat-state">Start the conversation below.</p>
 
@@ -799,6 +870,7 @@ onUnmounted(() => {
 .chat-nav__back:focus-visible,
 .chat-shell__new:focus-visible,
 .thread-item:focus-visible,
+.message-history__load:focus-visible,
 .message-actions__report:focus-visible,
 .composer__input:focus-visible,
 .composer__send:focus-visible {
@@ -1210,15 +1282,41 @@ onUnmounted(() => {
   background: #b7791f;
 }
 
-.message-list {
+.message-history {
   display: grid;
   align-content: start;
   gap: 0.75rem;
-  margin: 0;
   padding: 1.25rem;
   overflow: auto;
-  list-style: none;
   background: #faf8f5;
+}
+
+.message-history__load {
+  justify-self: center;
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid rgb(61 69 65 / 0.16);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-text-strong);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.message-history__load:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.message-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .message-row {
