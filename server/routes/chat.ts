@@ -71,7 +71,7 @@ function validateId(id: string, res: Response, label: string): boolean {
 export function createChatRouter() {
   const router = Router()
 
-  router.use(async (req, res, next) => {
+  router.use('/chat', async (req, res, next) => {
     try {
       const user = await getUserFromRequest(req)
       if (!user) {
