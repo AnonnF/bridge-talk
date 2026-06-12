@@ -17,7 +17,16 @@ async function handleSignOut() {
 <template>
   <header class="site-header">
     <div class="site-header__inner">
-      <RouterLink to="/" class="logo">BridgeTalk</RouterLink>
+      <RouterLink to="/" class="logo">
+        <img
+          class="logo__icon"
+          src="/bridge_talk_icon_v1.png"
+          alt=""
+          width="32"
+          height="32"
+        />
+        BridgeTalk
+      </RouterLink>
 
       <div v-if="user" class="avatar-wrapper">
         <button
@@ -79,12 +88,22 @@ async function handleSignOut() {
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--font-logo);
   font-size: var(--text-logo);
   font-weight: 400;
   line-height: 1.75rem;
   color: var(--color-text-strong);
   text-decoration: none;
+}
+
+.logo__icon {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .logo:focus-visible {
