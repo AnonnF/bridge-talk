@@ -1,315 +1,787 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Imperial Standard - BridgeTalk Impact Asset</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #eee; display: flex; justify-content: center; padding: 24px; }
-  @media print { body { background: white; padding: 0; } .np { border: none; box-shadow: none; } }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Imperial Standard - BridgeTalk Impact Asset</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #eee;
+        display: flex;
+        justify-content: center;
+        padding: 24px;
+      }
+      @media print {
+        body {
+          background: white;
+          padding: 0;
+        }
+        .np {
+          border: none;
+          box-shadow: none;
+        }
+      }
 
-  .np {
-    background: #faf8f3;
-    color: #1a1a1a;
-    font-family: 'Source Serif 4', Georgia, serif;
-    width: 780px;
-    max-width: 100%;
-    border: 1px solid #c8c0a8;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  }
+      .np {
+        background: #faf8f3;
+        color: #1a1a1a;
+        font-family: 'Source Serif 4', Georgia, serif;
+        width: 780px;
+        max-width: 100%;
+        border: 1px solid #c8c0a8;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      }
 
-  /* HEADER */
-  .np-head {
-    border-bottom: 3px double #1a1a1a;
-    padding: 14px 28px 8px;
-    text-align: center;
-  }
-  .np-meta-row {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #555;
-  }
-  .np-masthead {
-    font-family: 'Playfair Display', serif;
-    font-size: 48px; font-weight: 900; line-height: 1; color: #0a0a0a; margin: 2px 0 4px;
-  }
-  .np-tagline { font-style: italic; font-size: 11px; color: #666; margin-bottom: 6px; }
-  .np-rule-thick { border: none; border-top: 2px solid #1a1a1a; margin: 0; }
-  .np-rule-thin  { border: none; border-top: 0.5px solid #888; margin: 0; }
+      /* HEADER */
+      .np-head {
+        border-bottom: 3px double #1a1a1a;
+        padding: 14px 28px 8px;
+        text-align: center;
+      }
+      .np-meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #555;
+      }
+      .np-masthead {
+        font-family: 'Playfair Display', serif;
+        font-size: 48px;
+        font-weight: 900;
+        line-height: 1;
+        color: #0a0a0a;
+        margin: 2px 0 4px;
+      }
+      .np-tagline {
+        font-style: italic;
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 6px;
+      }
+      .np-rule-thick {
+        border: none;
+        border-top: 2px solid #1a1a1a;
+        margin: 0;
+      }
+      .np-rule-thin {
+        border: none;
+        border-top: 0.5px solid #888;
+        margin: 0;
+      }
 
-  .np-section-bar {
-    background: #1a1a1a; padding: 3px 28px;
-    font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #faf8f3;
-  }
+      .np-section-bar {
+        background: #1a1a1a;
+        padding: 3px 28px;
+        font-size: 9.5px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #faf8f3;
+      }
 
-  /* BODY */
-  .np-body { padding: 20px 28px 24px; }
+      /* BODY */
+      .np-body {
+        padding: 20px 28px 24px;
+      }
 
-  .np-kicker {
-    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: #3d8b6e; font-weight: 600; margin-bottom: 4px;
-  }
-  .np-headline {
-    font-family: 'Playfair Display', serif;
-    font-size: 34px; font-weight: 900; line-height: 1.1; color: #0a0a0a;
-    margin: 0 0 6px; max-width: 600px;
-  }
-  .np-deck {
-    font-size: 14.5px; font-style: italic; color: #444; margin: 0 0 14px;
-    max-width: 560px; line-height: 1.5;
-  }
-  .np-byline {
-    font-size: 10.5px; color: #666; letter-spacing: 0.04em; text-transform: uppercase;
-    padding-bottom: 12px; border-bottom: 0.5px solid #c8c0a8; margin-bottom: 16px;
-  }
+      .np-kicker {
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #3d8b6e;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .np-headline {
+        font-family: 'Playfair Display', serif;
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1.1;
+        color: #0a0a0a;
+        margin: 0 0 6px;
+        max-width: 600px;
+      }
+      .np-deck {
+        font-size: 14.5px;
+        font-style: italic;
+        color: #444;
+        margin: 0 0 14px;
+        max-width: 560px;
+        line-height: 1.5;
+      }
+      .np-byline {
+        font-size: 10.5px;
+        color: #666;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding-bottom: 12px;
+        border-bottom: 0.5px solid #c8c0a8;
+        margin-bottom: 16px;
+      }
 
-  /* TOP SECTION: intro + image side by side */
-  .np-top {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
-    margin-bottom: 20px;
-  }
-  .np-top p {
-    font-size: 13px; line-height: 1.65; margin: 0 0 10px; color: #1a1a1a;
-  }
-  .np-top p:first-child::first-letter {
-    font-family: 'Playfair Display', serif;
-    font-size: 42px; font-weight: 900; float: left;
-    line-height: 0.8; margin: 4px 5px 0 0; color: #0a0a0a;
-  }
-  .np-img-wrap {
-    border: 0.5px solid #c8c0a8; overflow: hidden; border-radius: 2px;
-    align-self: start;
-  }
-  .np-img-wrap img { display: block; width: 100%; height: auto; }
-  .np-img-caption {
-    font-size: 10px; color: #666; font-style: italic;
-    padding: 5px 8px; background: #f3f1ea; border-top: 0.5px solid #c8c0a8;
-  }
+      /* TOP SECTION: intro + image side by side */
+      .np-top {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 20px;
+      }
+      .np-top p {
+        font-size: 13px;
+        line-height: 1.65;
+        margin: 0 0 10px;
+        color: #1a1a1a;
+      }
+      .np-top p:first-child::first-letter {
+        font-family: 'Playfair Display', serif;
+        font-size: 42px;
+        font-weight: 900;
+        float: left;
+        line-height: 0.8;
+        margin: 4px 5px 0 0;
+        color: #0a0a0a;
+      }
+      .np-img-wrap {
+        border: 0.5px solid #c8c0a8;
+        overflow: hidden;
+        border-radius: 2px;
+        align-self: start;
+      }
+      .np-img-wrap img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .np-img-caption {
+        font-size: 10px;
+        color: #666;
+        font-style: italic;
+        padding: 5px 8px;
+        background: #f3f1ea;
+        border-top: 0.5px solid #c8c0a8;
+      }
 
-  /* STATS ROW */
-  .np-stats {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
-    border-top: 2px solid #1a1a1a;
-    padding: 14px 0; margin: 0 0 20px; text-align: center;
-  }
-  .np-stat { border-right: 0.5px solid #c8c0a8; }
-  .np-stat:last-child { border-right: none; }
-  .np-stat-num {
-    font-family: 'Playfair Display', serif;
-    font-size: 44px; font-weight: 900; line-height: 1; color: #3d8b6e;
-  }
-  .np-stat-desc {
-    font-size: 11px; color: #444; margin-top: 4px; padding: 0 12px;
-    line-height: 1.4; font-style: italic;
-  }
+      /* STATS ROW */
+      .np-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        border-top: 2px solid #1a1a1a;
+        padding: 14px 0;
+        margin: 0 0 20px;
+        text-align: center;
+      }
+      .np-stat {
+        border-right: 0.5px solid #c8c0a8;
+      }
+      .np-stat:last-child {
+        border-right: none;
+      }
+      .np-stat-num {
+        font-family: 'Playfair Display', serif;
+        font-size: 44px;
+        font-weight: 900;
+        line-height: 1;
+        color: #3d8b6e;
+      }
+      .np-stat-desc {
+        font-size: 11px;
+        color: #444;
+        margin-top: 4px;
+        padding: 0 12px;
+        line-height: 1.4;
+        font-style: italic;
+      }
 
-  /* QUOTE CALLOUT */
-  .np-quote-box {
-    background: #f0ede4; border-left: 3px solid #3d8b6e;
-    padding: 14px 18px; margin: 0 0 18px;
-  }
-  .np-quote-text {
-    font-family: 'Playfair Display', serif;
-    font-size: 16px; font-style: italic; font-weight: 700;
-    line-height: 1.35; color: #1a1a1a; margin-bottom: 6px;
-  }
-  .np-quote-attr {
-    font-size: 11px; color: #666; letter-spacing: 0.04em;
-  }
+      /* QUOTE CALLOUT */
+      .np-quote-box {
+        background: #f0ede4;
+        border-left: 3px solid #3d8b6e;
+        padding: 14px 18px;
+        margin: 0 0 18px;
+      }
+      .np-quote-text {
+        font-family: 'Playfair Display', serif;
+        font-size: 16px;
+        font-style: italic;
+        font-weight: 700;
+        line-height: 1.35;
+        color: #1a1a1a;
+        margin-bottom: 6px;
+      }
+      .np-quote-attr {
+        font-size: 11px;
+        color: #666;
+        letter-spacing: 0.04em;
+      }
 
-  /* BOTTOM TWO-COL */
-  .np-bottom {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
-  }
-  .np-bottom p {
-    font-size: 13px; line-height: 1.65; margin: 0 0 10px; color: #1a1a1a;
-  }
+      /* BOTTOM TWO-COL */
+      .np-bottom {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .np-bottom p {
+        font-size: 13px;
+        line-height: 1.65;
+        margin: 0 0 10px;
+        color: #1a1a1a;
+      }
 
-  /* WIDER IMPACT BOX */
-  .np-impact-box {
-    background: #1a1a1a; color: #faf8f3; padding: 14px 18px;
-    margin-top: 4px;
-  }
-  .np-impact-head {
-    font-family: 'Playfair Display', serif;
-    font-size: 13px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.08em; margin-bottom: 8px; color: #e8e4d8;
-  }
-  .np-impact-box p {
-    font-size: 12px; line-height: 1.55; margin: 0 0 6px; color: #d4d0c4;
-  }
-  .np-impact-box strong { color: #faf8f3; }
+      /* WIDER IMPACT BOX */
+      .np-impact-box {
+        background: #1a1a1a;
+        color: #faf8f3;
+        padding: 14px 18px;
+        margin-top: 4px;
+      }
+      .np-impact-head {
+        font-family: 'Playfair Display', serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+        color: #e8e4d8;
+      }
+      .np-impact-box p {
+        font-size: 12px;
+        line-height: 1.55;
+        margin: 0 0 6px;
+        color: #d4d0c4;
+      }
+      .np-impact-box strong {
+        color: #faf8f3;
+      }
 
-  /* ALSO IN THIS EDITION */
-  .np-also {
-    border-top: 0.5px solid #c8c0a8; margin-top: 18px; padding-top: 10px;
-  }
-  .np-also-head {
-    font-family: 'Playfair Display', serif;
-    font-size: 11px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.08em; margin-bottom: 6px; color: #555;
-  }
-  .np-also-items {
-    display: flex; gap: 16px; font-size: 11px; color: #555; font-style: italic; line-height: 1.4;
-  }
-  .np-also-items span { flex: 1; }
+      /* ALSO IN THIS EDITION */
+      .np-also {
+        border-top: 0.5px solid #c8c0a8;
+        margin-top: 18px;
+        padding-top: 10px;
+      }
+      .np-also-head {
+        font-family: 'Playfair Display', serif;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+        color: #555;
+      }
+      .np-also-items {
+        display: flex;
+        gap: 16px;
+        font-size: 11px;
+        color: #555;
+        font-style: italic;
+        line-height: 1.4;
+      }
+      .np-also-items span {
+        flex: 1;
+      }
 
-  /* FOOTER */
-  .np-footer {
-    border-top: 2px solid #1a1a1a; padding: 6px 28px;
-    display: flex; justify-content: space-between;
-    font-size: 9.5px; color: #555; letter-spacing: 0.05em; text-transform: uppercase;
-  }
-</style>
-</head>
-<body>
-<div class="np">
-  <div class="np-head">
-    <div class="np-meta-row">
-      <span>Tuesday, 10 June 2026</span>
-      <span>Imperial College London</span>
-      <span>Issue No. 47 &middot; Free</span>
+      /* FOOTER */
+      .np-footer {
+        border-top: 2px solid #1a1a1a;
+        padding: 6px 28px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 9.5px;
+        color: #555;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="np">
+      <div class="np-head">
+        <div class="np-meta-row">
+          <span>Tuesday, 10 June 2026</span>
+          <span>Imperial College London</span>
+          <span>Issue No. 47 &middot; Free</span>
+        </div>
+        <div class="np-masthead">The Imperial Standard</div>
+        <div class="np-tagline">
+          &ldquo;To inform, to question, to connect&rdquo;
+        </div>
+        <hr class="np-rule-thick" style="margin-bottom: 2px" />
+        <hr class="np-rule-thin" />
+      </div>
+
+      <div class="np-section-bar">
+        Student Wellbeing &middot; Technology &middot; Mental Health
+      </div>
+
+      <div class="np-body">
+        <div class="np-kicker">Exclusive Feature</div>
+        <h1 class="np-headline">
+          The students who couldn&rsquo;t speak up, and the app trying to change
+          that
+        </h1>
+        <p class="np-deck">
+          A new student-built tool gives Imperial students somewhere to practise
+          difficult conversations before they happen for real.
+        </p>
+        <div class="np-byline">
+          By <strong>The Imperial Standard</strong> &middot; Student Life
+          &middot; 10 June 2026
+        </div>
+
+        <!-- TOP: Intro text + Screenshot -->
+        <div class="np-top">
+          <div>
+            <p>
+              Maya had been rehearsing the conversation in her head for two
+              weeks. When the moment finally came, she said nothing. She left,
+              sat on the steps outside Huxley, and felt the familiar weight of
+              another missed opportunity. "Knowing isn't the same as doing," she
+              said.
+            </p>
+            <p>
+              Her experience is not unusual. A survey of Imperial students this
+              term found that over half regularly avoid conversations they know
+              they need to have, whether with tutors, housemates, or potential
+              employers.
+            </p>
+          </div>
+          <div>
+            <div class="np-img-wrap">
+              <img
+                src="Bridgetalk_landing_page.png"
+                alt="Screenshot of the BridgeTalk app interface"
+              />
+              <div class="np-img-caption">
+                The BridgeTalk platform: learn, practise, reflect. Photo:
+                BridgeTalk team
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS: survey data -->
+        <div class="np-stats">
+          <div class="np-stat">
+            <div class="np-stat-num">
+              2.8<span style="font-size: 28px">/5</span>
+            </div>
+            <div class="np-stat-desc">
+              Average conversation confidence among Imperial students
+            </div>
+            <div style="font-size: 10px; color: #888; margin-top: 2px">
+              Student survey, n=22
+            </div>
+          </div>
+          <div class="np-stat">
+            <div class="np-stat-num">82%</div>
+            <div class="np-stat-desc">
+              Rehearse conversations in their head before speaking
+            </div>
+            <div style="font-size: 10px; color: #888; margin-top: 2px">
+              18 of 22 respondents
+            </div>
+          </div>
+          <div class="np-stat">
+            <div class="np-stat-num">1 in 2</div>
+            <div class="np-stat-desc">
+              Sometimes avoid difficult conversations entirely
+            </div>
+            <div style="font-size: 10px; color: #888; margin-top: 2px">
+              11 of 22 respondents
+            </div>
+          </div>
+        </div>
+
+        <!-- TWO QUOTES SIDE BY SIDE -->
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 18px;
+          "
+        >
+          <div class="np-quote-box" style="border-left-color: #b8860b">
+            <div class="np-quote-text">
+              &ldquo;I knew exactly what I wanted to say. But knowing isn't the
+              same as doing. I had no way to practise.&rdquo;
+            </div>
+            <div class="np-quote-attr">
+              Maya, Second-year undergraduate, Imperial College
+            </div>
+          </div>
+          <div class="np-quote-box">
+            <div class="np-quote-text">
+              &ldquo;The hard work happens outside my sessions. In the corridor,
+              in the group chat. That's where students fall apart.&rdquo;
+            </div>
+            <div class="np-quote-attr">
+              Sarah, University counsellor, Imperial College London
+            </div>
+          </div>
+        </div>
+
+        <!-- TOP STRESSORS -->
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #f5f3ec;
+            border: 0.5px solid #c8c0a8;
+            padding: 10px 16px;
+            margin-bottom: 18px;
+          "
+        >
+          <div
+            style="
+              font-family: 'Playfair Display', serif;
+              font-size: 12px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.06em;
+              white-space: nowrap;
+              color: #555;
+            "
+          >
+            Top stressors
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <span
+              style="
+                background: #1a1a1a;
+                color: #faf8f3;
+                padding: 3px 10px;
+                border-radius: 2px;
+                font-size: 11px;
+              "
+              >Small talk</span
+            >
+            <span
+              style="
+                background: #1a1a1a;
+                color: #faf8f3;
+                padding: 3px 10px;
+                border-radius: 2px;
+                font-size: 11px;
+              "
+              >Tutors &amp; authority</span
+            >
+            <span
+              style="
+                background: #1a1a1a;
+                color: #faf8f3;
+                padding: 3px 10px;
+                border-radius: 2px;
+                font-size: 11px;
+              "
+              >Setting boundaries</span
+            >
+            <span
+              style="
+                background: #1a1a1a;
+                color: #faf8f3;
+                padding: 3px 10px;
+                border-radius: 2px;
+                font-size: 11px;
+              "
+              >Job interviews</span
+            >
+          </div>
+          <div
+            style="
+              font-size: 9.5px;
+              color: #888;
+              white-space: nowrap;
+              margin-left: auto;
+            "
+          >
+            survey, n=22
+          </div>
+        </div>
+
+        <!-- HOW BRIDGETALK WORKS: 3 features with icons -->
+        <div style="margin-bottom: 16px">
+          <div
+            style="
+              font-family: 'Playfair Display', serif;
+              font-size: 13px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              border-bottom: 1.5px solid #1a1a1a;
+              padding-bottom: 4px;
+              margin-bottom: 12px;
+              color: #0a0a0a;
+            "
+          >
+            How BridgeTalk works
+          </div>
+          <div
+            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px"
+          >
+            <div style="text-align: center">
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 15px;
+                  font-weight: 700;
+                  color: #3d8b6e;
+                  margin-bottom: 4px;
+                "
+              >
+                Learn
+              </div>
+              <p
+                style="
+                  font-size: 12px;
+                  line-height: 1.5;
+                  color: #333;
+                  margin: 0;
+                "
+              >
+                Short multiple-choice lessons introduce communication frameworks
+                at your own pace.
+              </p>
+            </div>
+            <div style="text-align: center">
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 15px;
+                  font-weight: 700;
+                  color: #3d8b6e;
+                  margin-bottom: 4px;
+                "
+              >
+                Practise
+              </div>
+              <p
+                style="
+                  font-size: 12px;
+                  line-height: 1.5;
+                  color: #333;
+                  margin: 0;
+                "
+              >
+                Peer-matching connects students anonymously for low-stakes,
+                human-to-human conversations.
+              </p>
+            </div>
+            <div style="text-align: center">
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 15px;
+                  font-weight: 700;
+                  color: #3d8b6e;
+                  margin-bottom: 4px;
+                "
+              >
+                Reflect
+              </div>
+              <p
+                style="
+                  font-size: 12px;
+                  line-height: 1.5;
+                  color: #333;
+                  margin: 0;
+                "
+              >
+                A guided journal prompts reflection after interactions and
+                tracks growth over time.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div style="margin-bottom: 16px">
+          <div
+            style="
+              font-family: 'Playfair Display', serif;
+              font-size: 13px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              border-bottom: 1.5px solid #1a1a1a;
+              padding-bottom: 4px;
+              margin-bottom: 12px;
+              color: #0a0a0a;
+            "
+          >
+            The wider impact
+          </div>
+
+          <!-- UK SCALE -->
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 0;
+              background: #f5f3ec;
+              border: 0.5px solid #c8c0a8;
+              padding: 14px 0;
+              text-align: center;
+              margin-bottom: 14px;
+            "
+          >
+            <div style="border-right: 0.5px solid #c8c0a8; padding: 0 22px">
+              <div style="font-size: 24px; margin-bottom: 2px">&#127891;</div>
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 32px;
+                  font-weight: 900;
+                  color: #1a1a1a;
+                "
+              >
+                2.86M
+              </div>
+              <div style="font-size: 11px; color: #444; font-style: italic">
+                students in UK higher education
+              </div>
+              <div style="font-size: 9.5px; color: #888; margin-top: 2px">
+                HESA, 2024/25
+              </div>
+            </div>
+            <div style="padding: 0 22px">
+              <div style="font-size: 24px; margin-bottom: 2px">
+                &#9888;&#65039;
+              </div>
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 32px;
+                  font-weight: 900;
+                  color: #1a1a1a;
+                "
+              >
+                ~950K
+              </div>
+              <div style="font-size: 11px; color: #444; font-style: italic">
+                experience significant anxiety
+              </div>
+              <div style="font-size: 9.5px; color: #888; margin-top: 2px">
+                ~33%, Buckley et al. (2023)
+              </div>
+            </div>
+          </div>
+          <div
+            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px"
+          >
+            <div style="text-align: center">
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 15px;
+                  font-weight: 700;
+                  color: #3d8b6e;
+                  margin-bottom: 4px;
+                "
+              >
+                For friends &amp; peers
+              </div>
+              <p
+                style="
+                  font-size: 12px;
+                  line-height: 1.5;
+                  color: #333;
+                  margin: 0;
+                "
+              >
+                Flatmates, project partners, and social circles experience less
+                unresolved tension when students can navigate difficult
+                conversations rather than avoid them.
+              </p>
+            </div>
+            <div style="text-align: center">
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 15px;
+                  font-weight: 700;
+                  color: #3d8b6e;
+                  margin-bottom: 4px;
+                "
+              >
+                For the university
+              </div>
+              <p
+                style="
+                  font-size: 12px;
+                  line-height: 1.5;
+                  color: #333;
+                  margin: 0;
+                "
+              >
+                Reduced pressure on overstretched counselling services, stronger
+                student retention, and fewer escalations to crisis support.
+              </p>
+            </div>
+            <div style="text-align: center">
+              <div
+                style="
+                  font-family: 'Playfair Display', serif;
+                  font-size: 15px;
+                  font-weight: 700;
+                  color: #3d8b6e;
+                  margin-bottom: 4px;
+                "
+              >
+                Beyond Imperial
+              </div>
+              <p
+                style="
+                  font-size: 12px;
+                  line-height: 1.5;
+                  color: #333;
+                  margin: 0;
+                "
+              >
+                The learn, practise, reflect model is transferable to any
+                university, workplace, or healthcare setting where people need
+                to prepare for difficult conversations.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALSO -->
+        <div class="np-also">
+          <div class="np-also-head">Also in this edition</div>
+          <div class="np-also-items">
+            <span
+              >&middot; Counselling services at capacity: what comes next at
+              South Kensington</span
+            >
+            <span
+              >&middot; &ldquo;I didn't know who to ask&rdquo;: international
+              students on academic culture</span
+            >
+            <span
+              >&middot; Group work, conflict, and the conversations nobody wants
+              to have</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="np-footer">
+        <span>The Imperial Standard &middot; imperialstandard.ic.ac.uk</span>
+        <span>Student journalism for Imperial College London</span>
+        <span>Page 1</span>
+      </div>
     </div>
-    <div class="np-masthead">The Imperial Standard</div>
-    <div class="np-tagline">&ldquo;To inform, to question, to connect&rdquo;</div>
-    <hr class="np-rule-thick" style="margin-bottom:2px">
-    <hr class="np-rule-thin">
-  </div>
-
-  <div class="np-section-bar">Student Wellbeing &middot; Technology &middot; Mental Health</div>
-
-  <div class="np-body">
-    <div class="np-kicker">Exclusive Feature</div>
-    <h1 class="np-headline">The students who couldn&rsquo;t speak up, and the app trying to change that</h1>
-    <p class="np-deck">A new student-built tool gives Imperial students somewhere to practise difficult conversations before they happen for real.</p>
-    <div class="np-byline">By <strong>The Imperial Standard</strong> &middot; Student Life &middot; 10 June 2026</div>
-
-    <!-- TOP: Intro text + Screenshot -->
-    <div class="np-top">
-      <div>
-        <p>Maya had been rehearsing the conversation in her head for two weeks. When the moment finally came, she said nothing. She left, sat on the steps outside Huxley, and felt the familiar weight of another missed opportunity. "Knowing isn't the same as doing," she said.</p>
-        <p>Her experience is not unusual. A survey of Imperial students this term found that over half regularly avoid conversations they know they need to have, whether with tutors, housemates, or potential employers.</p>
-      </div>
-      <div>
-        <div class="np-img-wrap">
-          <img src="Bridgetalk_landing_page.png" alt="Screenshot of the BridgeTalk app interface">
-          <div class="np-img-caption">The BridgeTalk platform: learn, practise, reflect. Photo: BridgeTalk team</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- STATS: survey data -->
-    <div class="np-stats">
-      <div class="np-stat">
-        <div class="np-stat-num">2.8<span style="font-size:28px;">/5</span></div>
-        <div class="np-stat-desc">Average conversation confidence among Imperial students</div>
-        <div style="font-size:10px; color:#888; margin-top:2px;">Student survey, n=22</div>
-      </div>
-      <div class="np-stat">
-        <div class="np-stat-num">82%</div>
-        <div class="np-stat-desc">Rehearse conversations in their head before speaking</div>
-        <div style="font-size:10px; color:#888; margin-top:2px;">18 of 22 respondents</div>
-      </div>
-      <div class="np-stat">
-        <div class="np-stat-num">1 in 2</div>
-        <div class="np-stat-desc">Sometimes avoid difficult conversations entirely</div>
-        <div style="font-size:10px; color:#888; margin-top:2px;">11 of 22 respondents</div>
-      </div>
-    </div>
-
-    <!-- TWO QUOTES SIDE BY SIDE -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;">
-      <div class="np-quote-box" style="border-left-color:#b8860b;">
-        <div class="np-quote-text">&ldquo;I knew exactly what I wanted to say. But knowing isn't the same as doing. I had no way to practise.&rdquo;</div>
-        <div class="np-quote-attr">Maya, Second-year undergraduate, Imperial College</div>
-      </div>
-      <div class="np-quote-box">
-        <div class="np-quote-text">&ldquo;The hard work happens outside my sessions. In the corridor, in the group chat. That's where students fall apart.&rdquo;</div>
-        <div class="np-quote-attr">Sarah, University counsellor, Imperial College London</div>
-      </div>
-    </div>
-
-    <!-- TOP STRESSORS -->
-    <div style="display:flex; align-items:center; gap:14px; background:#f5f3ec; border:0.5px solid #c8c0a8; padding:10px 16px; margin-bottom:18px;">
-      <div style="font-family:'Playfair Display',serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; white-space:nowrap; color:#555;">Top stressors</div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <span style="background:#1a1a1a; color:#faf8f3; padding:3px 10px; border-radius:2px; font-size:11px;">Small talk</span>
-        <span style="background:#1a1a1a; color:#faf8f3; padding:3px 10px; border-radius:2px; font-size:11px;">Tutors &amp; authority</span>
-        <span style="background:#1a1a1a; color:#faf8f3; padding:3px 10px; border-radius:2px; font-size:11px;">Setting boundaries</span>
-        <span style="background:#1a1a1a; color:#faf8f3; padding:3px 10px; border-radius:2px; font-size:11px;">Job interviews</span>
-      </div>
-      <div style="font-size:9.5px; color:#888; white-space:nowrap; margin-left:auto;">survey, n=22</div>
-    </div>
-
-    <!-- HOW BRIDGETALK WORKS: 3 features with icons -->
-    <div style="margin-bottom:16px;">
-      <div style="font-family:'Playfair Display',serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1.5px solid #1a1a1a; padding-bottom:4px; margin-bottom:12px; color:#0a0a0a;">How BridgeTalk works</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
-        <div style="text-align:center;">
-          <div style="font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:#3d8b6e; margin-bottom:4px;">Learn</div>
-          <p style="font-size:12px; line-height:1.5; color:#333; margin:0;">Short multiple-choice lessons introduce communication frameworks at your own pace.</p>
-        </div>
-        <div style="text-align:center;">
-          <div style="font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:#3d8b6e; margin-bottom:4px;">Practise</div>
-          <p style="font-size:12px; line-height:1.5; color:#333; margin:0;">Peer-matching connects students anonymously for low-stakes, human-to-human conversations.</p>
-        </div>
-        <div style="text-align:center;">
-          <div style="font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:#3d8b6e; margin-bottom:4px;">Reflect</div>
-          <p style="font-size:12px; line-height:1.5; color:#333; margin:0;">A guided journal prompts reflection after interactions and tracks growth over time.</p>
-        </div>
-      </div>
-    </div>
-    <div style="margin-bottom:16px;">
-      <div style="font-family:'Playfair Display',serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1.5px solid #1a1a1a; padding-bottom:4px; margin-bottom:12px; color:#0a0a0a;">The wider impact</div>
-
-      <!-- UK SCALE -->
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; background:#f5f3ec; border:0.5px solid #c8c0a8; padding:14px 0; text-align:center; margin-bottom:14px;">
-        <div style="border-right:0.5px solid #c8c0a8; padding:0 22px;">
-          <div style="font-size:24px; margin-bottom:2px;">&#127891;</div>
-          <div style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:#1a1a1a;">2.86M</div>
-          <div style="font-size:11px; color:#444; font-style:italic;">students in UK higher education</div>
-          <div style="font-size:9.5px; color:#888; margin-top:2px;">HESA, 2024/25</div>
-        </div>
-        <div style="padding:0 22px;">
-          <div style="font-size:24px; margin-bottom:2px;">&#9888;&#65039;</div>
-          <div style="font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:#1a1a1a;">~950K</div>
-          <div style="font-size:11px; color:#444; font-style:italic;">experience significant anxiety</div>
-          <div style="font-size:9.5px; color:#888; margin-top:2px;">~33%, Buckley et al. (2023)</div>
-        </div>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
-        <div style="text-align:center;">
-          <div style="font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:#3d8b6e; margin-bottom:4px;">For friends &amp; peers</div>
-          <p style="font-size:12px; line-height:1.5; color:#333; margin:0;">Flatmates, project partners, and social circles experience less unresolved tension when students can navigate difficult conversations rather than avoid them.</p>
-        </div>
-        <div style="text-align:center;">
-          <div style="font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:#3d8b6e; margin-bottom:4px;">For the university</div>
-          <p style="font-size:12px; line-height:1.5; color:#333; margin:0;">Reduced pressure on overstretched counselling services, stronger student retention, and fewer escalations to crisis support.</p>
-        </div>
-        <div style="text-align:center;">
-          <div style="font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:#3d8b6e; margin-bottom:4px;">Beyond Imperial</div>
-          <p style="font-size:12px; line-height:1.5; color:#333; margin:0;">The learn, practise, reflect model is transferable to any university, workplace, or healthcare setting where people need to prepare for difficult conversations.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ALSO -->
-    <div class="np-also">
-      <div class="np-also-head">Also in this edition</div>
-      <div class="np-also-items">
-        <span>&middot; Counselling services at capacity: what comes next at South Kensington</span>
-        <span>&middot; &ldquo;I didn't know who to ask&rdquo;: international students on academic culture</span>
-        <span>&middot; Group work, conflict, and the conversations nobody wants to have</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="np-footer">
-    <span>The Imperial Standard &middot; imperialstandard.ic.ac.uk</span>
-    <span>Student journalism for Imperial College London</span>
-    <span>Page 1</span>
-  </div>
-</div>
-</body>
+  </body>
 </html>
