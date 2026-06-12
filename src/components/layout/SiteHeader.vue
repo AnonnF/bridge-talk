@@ -20,7 +20,7 @@ async function handleSignOut() {
       <RouterLink to="/" class="logo">
         <img
           class="logo__icon"
-          src="/BridgeTalk_icon_cutout_cropped.png"
+          src="/bridge_talk_icon_v1.png"
           alt=""
           width="32"
           height="32"
